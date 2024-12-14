@@ -1,0 +1,46 @@
+# Node.js 기본
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 환경설정 파일 (보안상 이유로 제외)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 빌드 디렉토리
+dist/
+build/
+
+# 임시 파일
+*.tmp
+*.log
+*.out
+*.lock
+
+# OS별 임시 파일
+.DS_Store
+Thumbs.db
+
+# IDE/편집기 관련 파일
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.orig
+
+# 테스트 결과 파일
+coverage/
+
+# 린트 관련
+.eslintcache
+
+# PM2 또는 기타 프로세스 관리 도구 관련 파일
+pm2-log.txt
+
+# TypeScript 컴파일 결과 (해당 시)
+*.tsbuildinfo
