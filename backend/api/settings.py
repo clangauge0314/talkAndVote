@@ -43,10 +43,6 @@ INSTALLED_APPS = [
     "users",
 ]
 
-JAZZMIN_UI_TWEAKS = {
-    "theme": "dark",
-    "dark_mode_theme": "cyborg",
-}
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
@@ -137,3 +133,6 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+AUTH_USER_MODEL = "users.User"
