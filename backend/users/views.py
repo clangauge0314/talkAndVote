@@ -1,82 +1,140 @@
-from django.contrib.auth.models import User
+from typing import Any
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.hashers import make_password
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpRequest
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.request import Request
+from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-import json
+from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import Serializer, CharField, EmailField
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 User = get_user_model()
 
 
-@csrf_exempt
-def signup(req: HttpRequest):
-    if req.method == "POST":
-        try:
-            data = json.loads(req.body)
-            username = data.get("username")
-            email = data.get("email")
-            password = data.get("password")
+# Helper function to get client IP
+def get_client_ip(request: Request) -> str:
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0]
+    return request.META.get("REMOTE_ADDR")
 
-            if not email or not password or not username:
-                return JsonResponse(
-                    {"message": "올바르지 않은 입력입니다"},
-                    status=400,
-                )
 
-            if User.objects.filter(email=email).exists():
-                return JsonResponse(
-                    {"message": "이미 가입된 이메일입니다."}, status=400
-                )
+# Signup Serializer and View
+class SignupSerializer(Serializer):
+    username: CharField = CharField(max_length=150)
+    email: EmailField = EmailField()
+    password: CharField = CharField(write_only=True)
 
-            if User.objects.filter(username=username).exists():
-                return JsonResponse(
-                    {"message": "이미 사용된 사용자 이름입니다."}, status=400
-                )
+    def validate_email(self, email: str) -> str:
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("이미 가입된 이메일입니다.")
+        return email
 
-            user = User.objects.create(
-                username=username, password=make_password(password), email=email
+    def validate_username(self, username: str) -> str:
+        if User.objects.filter(username=username).exists():
+            raise ValidationError("이미 사용된 사용자 이름입니다.")
+        return username
+
+    def create(self, validated_data: dict[str, Any]):
+        return User.objects.create(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=make_password(validated_data["password"]),
+        )
+
+
+class SignupView(APIView):
+    permission_classes = [AllowAny]  # 로그인은 누구나 접근 가능
+
+    def post(self, request: Request) -> Response:
+        serializer = SignupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "회원가입이 완료되었습니다."},
+                status=status.HTTP_201_CREATED,
             )
-            return JsonResponse({"message": "회원가입이 완료되었습니다."}, status=201)
-        except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    return JsonResponse({"message": "잘못된 요청 방법입니다."}, status=405)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@csrf_exempt
-def login(req: HttpRequest):
-    if req.method == "POST":
-        try:
-            data = json.loads(req.body)
-            email = data.get("email")
-            password = data.get("password")
+# Login Serializer and View
+class LoginSerializer(Serializer):
+    email: EmailField = EmailField()
+    password: CharField = CharField(write_only=True)
 
-            if not email or not password:
-                return JsonResponse(
-                    {"message": "이메일 또는 비밀번호는 필수입니다."},
-                    status=400,
-                )
+    def validate(self, data: dict[str, Any]):
+        email: str = data.get("email")
+        password: str = data.get("password")
 
-            # 1. JWT 절대로 사용자한테 보내지말고 cookie로 localStorage 안되면
-            # 2. user 모델 isActive 활/비활 boolean, failedLoginAttempts = 0 1 2 3 4 5
-            # 3. 비밀번호 5회 틀리면 비활
-            # 4. ipAddress 저장
-            # 5. 로그인 성공 시 isLoggedIn = true, 중복 로그인 방지
-            # 6. 여론조사 모델 까지만
-            user = User.objects.filter(email=email).first()
-            if user and user.check_password(password):
-                refresh = RefreshToken.for_user(user)
-                return JsonResponse(
-                    {
-                        "message": "로그인 성공",
-                        "access_token": str(refresh.access_token),
-                        "refresh_token": str(refresh),
-                    },
-                    status=200,
-                )
-            else:
-                return JsonResponse({"message": "잘못된 비밀번호입니다."}, status=401)
-        except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    return JsonResponse({"message": "잘못된 요청 방법입니다."}, status=405)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            raise ValidationError({"email": "사용자를 찾을 수 없습니다."})
+        if not user.is_active:
+            raise ValidationError({"email": "계정이 비활성화되었습니다."})
+        if user.is_logged_in:
+            raise ValidationError({"email": "이미 로그인된 사용자입니다."})
+        if not user.check_password(password):
+            raise ValidationError({"password": "잘못된 비밀번호입니다."})
+
+        return user
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]  # 로그인은 누구나 접근 가능
+
+    def post(self, request: Request) -> Response:
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data
+            refresh: RefreshToken = RefreshToken.for_user(user)
+            ip_address: str = get_client_ip(request)
+
+            # Update user login status
+            user.is_logged_in = True
+            user.ip_address = ip_address
+            user.save()
+
+            # Set cookies for access and refresh tokens
+            response = Response(
+                {
+                    "message": "로그인 성공",
+                },
+                status=status.HTTP_200_OK,
+            )
+            response.set_cookie(
+                key="access_token",
+                value=str(refresh.access_token),
+                httponly=True,
+                secure=True,
+                samesite="Strict",
+            )
+            response.set_cookie(
+                key="refresh_token",
+                value=str(refresh),
+                httponly=True,
+                secure=True,
+                samesite="Strict",
+            )
+            return response
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Logout View
+class LogoutView(APIView):
+    def post(self, request: Request) -> Response:
+        if request.user.is_authenticated:
+            user = request.user
+            user.is_logged_in = False
+            user.save()
+
+            response = Response({"message": "로그아웃 성공"}, status=status.HTTP_200_OK)
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            return response
+
+        return Response(
+            {"message": "로그인된 사용자가 아닙니다."}, status=status.HTTP_403_FORBIDDEN
+        )
