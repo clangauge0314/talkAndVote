@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { login } from "../../api/users";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // 로그인 로직 구현
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await login(formData.email, formData.password);
+      console.log("Logged in successfully:", data);
+      // 로그인 성공 시 추가 로직 (예: 토큰 저장, 리디렉션 등)
+    } catch (err) {
+      setError("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -31,7 +43,9 @@ const Login = () => {
           <form className="mt-12 space-y-8" onSubmit={handleSubmit}>
             <div className="space-y-6">
               <div className="group">
-                <label htmlFor="email" className="sr-only">이메일</label>
+                <label htmlFor="email" className="sr-only">
+                  이메일
+                </label>
                 <input
                   id="email"
                   name="email"
@@ -46,7 +60,9 @@ const Login = () => {
                 />
               </div>
               <div className="group">
-                <label htmlFor="password" className="sr-only">비밀번호</label>
+                <label htmlFor="password" className="sr-only">
+                  비밀번호
+                </label>
                 <input
                   id="password"
                   name="password"
@@ -78,8 +94,8 @@ const Login = () => {
             </div>
           </form>
           <div className="text-center">
-            <Link 
-              to="/signup" 
+            <Link
+              to="/signup"
               className="text-emerald-600 hover:text-emerald-500 text-xl font-medium
               transition-all duration-200 ease-in-out
               hover:underline decoration-2 underline-offset-4"
