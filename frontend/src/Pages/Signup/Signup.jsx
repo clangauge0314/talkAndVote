@@ -1,22 +1,72 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
+import axios from "axios";
+import PhoneVerification from "../../Components/PhoneVerification/PhoneVerification";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: ''
+    email: "",
+    password: "",
+    confirmPassword: "",
+    name: "",
   });
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("비밀번호가 일치하지 않습니다.");
+      setSuccessMessage("");
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccessMessage("");
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/signup/`,
+        {
+          email: formData.email,
+          password: formData.password,
+          username: formData.name,
+        }
+      );
+
+      console.log(response.status);
+
+      if (response.status === 201) {
+        setSuccessMessage("회원가입이 성공적으로 완료되었습니다!");
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          name: ''
+        });
+        <PhoneVerification />
+      }
+
+    } catch (err) {
+      if (err.response && err.response.data) {
+        if (err.response.data.email) {
+          setError(err.response.data.email);
+        } else if (err.response.data.username) {
+          setError(err.response.data.username);
+        } else {
+          setError("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+      } else {
+        setError("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
+      }
+      setSuccessMessage("");
+      console.error(err);
+    }
   };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -32,7 +82,9 @@ const Signup = () => {
           <form className="mt-12 space-y-8" onSubmit={handleSubmit}>
             <div className="space-y-6">
               <div className="group">
-                <label htmlFor="name" className="sr-only">이름</label>
+                <label htmlFor="name" className="sr-only">
+                  이름
+                </label>
                 <input
                   id="name"
                   name="name"
@@ -47,7 +99,9 @@ const Signup = () => {
                 />
               </div>
               <div className="group">
-                <label htmlFor="email" className="sr-only">이메일</label>
+                <label htmlFor="email" className="sr-only">
+                  이메일
+                </label>
                 <input
                   id="email"
                   name="email"
@@ -62,7 +116,9 @@ const Signup = () => {
                 />
               </div>
               <div className="group">
-                <label htmlFor="password" className="sr-only">비밀번호</label>
+                <label htmlFor="password" className="sr-only">
+                  비밀번호
+                </label>
                 <input
                   id="password"
                   name="password"
@@ -77,7 +133,9 @@ const Signup = () => {
                 />
               </div>
               <div className="group">
-                <label htmlFor="confirmPassword" className="sr-only">비밀번호 확인</label>
+                <label htmlFor="confirmPassword" className="sr-only">
+                  비밀번호 확인
+                </label>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -92,6 +150,18 @@ const Signup = () => {
                 />
               </div>
             </div>
+
+            {error && (
+              <div className="text-red-500 text-center text-xl font-medium">
+                {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="text-green-500 text-center text-xl font-medium">
+                {successMessage}
+              </div>
+            )}
 
             <div>
               <button
@@ -111,7 +181,7 @@ const Signup = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Signup
+export default Signup;
