@@ -205,7 +205,7 @@ function Navbar() {
             {categories.map((category) => (
               <button
                 key={category}
-                className="px-4 py-2 text-white hover:bg-emerald-600 rounded-full transition-all duration-300 text-sm font-medium"
+                className="px-4 py-2 text-white hover:bg-emerald-600 rounded-md transition-all duration-500 text-sm font-medium"
               >
                 {category}
               </button>

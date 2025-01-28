@@ -2,6 +2,8 @@ import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Navbar from "./Components/Navbar/Navbar";
 import Footer from "./Components/Footer/Footer";
 
+import Main from "./Pages/Main/Main";
+
 const Layout = () => {
   return (
     <div className="flex flex-col min-h-screen">
@@ -18,6 +20,12 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
+    children: [
+      {
+        path: "",
+        element: <Main />
+      }
+    ]
   },
 ]);
 
