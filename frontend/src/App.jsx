@@ -1,15 +1,23 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Login from "./Pages/Login/Login";
-import Signup from "./Pages/Signup/Signup";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import Navbar from "./Components/Navbar/Navbar";
+import Footer from "./Components/Footer/Footer";
+
+const Layout = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
 const router = createBrowserRouter([
   {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/signup",
-    element: <Signup />,
+    path: "/",
+    element: <Layout />,
   },
 ]);
 
