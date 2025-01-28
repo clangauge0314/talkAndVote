@@ -69,7 +69,7 @@ MIDDLEWARE = [
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
+    "http://localhost:3000",
     "https://427b-211-203-54-221.ngrok-free.app",
 ]
 CORS_ALLOW_METHODS = [

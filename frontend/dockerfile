@@ -1,0 +1,16 @@
+# Node 18 버전 이미지 사용
+FROM node:18
+
+WORKDIR /usr/src/app
+
+# 의존성 설치
+COPY package*.json ./
+RUN npm install
+
+# 소스 복사
+COPY . .
+
+EXPOSE 8000
+
+# 기본 명령어 (docker-compose에서 override 가능)
+CMD ["npm", "run", "dev"]
