@@ -4,7 +4,6 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer, CharField, EmailField
 
-
 User = get_user_model()
 
 
@@ -16,12 +15,12 @@ class SignupSerializer(Serializer):
 
     def validate_email(self, email: str) -> str:
         if User.objects.filter(email=email).exists():
-            raise ValidationError("이미 가입된 이메일입니다.")
+            raise ValidationError("이미 가입된 이메일입니다.")  # ✅ 메시지만 반환
         return email
 
     def validate_username(self, username: str) -> str:
         if User.objects.filter(username=username).exists():
-            raise ValidationError("이미 사용된 사용자 이름입니다.")
+            raise ValidationError("이미 있는 유저 이름입니다.")  # ✅ 메시지만 반환
         return username
 
     def create(self, validated_data: dict[str, Any]):
@@ -43,26 +42,18 @@ class LoginSerializer(Serializer):
         # 사용자 존재 여부 확인
         user = User.objects.filter(email=email).first()
         if not user:
-            raise ValidationError(
-                {"email": "사용자를 찾을 수 없습니다."}, code="user_not_found"
-            )
+            raise ValidationError("사용자를 찾을 수 없습니다.")  # ✅ 메시지만 반환
 
         # 사용자 계정 활성화 상태 확인
         if not user.is_active:
-            raise ValidationError(
-                {"email": "계정이 비활성화되었습니다."}, code="inactive_account"
-            )
+            raise ValidationError("계정이 비활성화되었습니다.")  # ✅ 메시지만 반환
 
-        # 로그인 상태 확인
-        if user.is_logged_in:
-            raise ValidationError(
-                {"email": "이미 로그인된 사용자입니다."}, code="already_logged_in"
-            )
+        # 로그인 상태 확인 (is_logged_in 필드가 있다고 가정)
+        if hasattr(user, "is_logged_in") and user.is_logged_in:
+            raise ValidationError("이미 로그인된 사용자입니다.")  # ✅ 메시지만 반환
 
         # 비밀번호 확인
         if not user.check_password(password):
-            raise ValidationError(
-                {"password": "잘못된 비밀번호입니다."}, code="invalid_password"
-            )
+            raise ValidationError("잘못된 비밀번호입니다.")  # ✅ 메시지만 반환
 
         return user
