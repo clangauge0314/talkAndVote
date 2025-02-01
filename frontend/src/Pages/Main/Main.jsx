@@ -71,22 +71,22 @@ const Main = () => {
               
               <div className="mb-3">
                 <div className="flex justify-between text-sm font-medium mb-2">
-                  <span className="text-blue-500">찬성 {card.agreePercentage}%</span>
-                  <span className="text-red-500">반대 {100 - card.agreePercentage}%</span>
+                  <span className="text-emerald-500">찬성 {card.agreePercentage}%</span>
+                  <span className="text-gray-500">반대 {100 - card.agreePercentage}%</span>
                 </div>
                 <div className="h-3 rounded-full overflow-hidden relative">
-                  <div className="absolute w-full h-full bg-red-200"></div>
-                  <div className="absolute h-full bg-blue-200"
+                  <div className="absolute w-full h-full bg-gray-200"></div>
+                  <div className="absolute h-full bg-emerald-400"
                     style={{ 
                       width: `${card.agreePercentage}%`,
                     }}
                   ></div>
-                  <div className="absolute h-full bg-blue-500 opacity-40"
+                  <div className="absolute h-full bg-emerald-500 opacity-40"
                     style={{ 
                       width: `${card.agreePercentage}%`,
                     }}
                   ></div>
-                  <div className="absolute h-full bg-red-500 opacity-40"
+                  <div className="absolute h-full bg-gray-500 opacity-40"
                     style={{ 
                       left: `${card.agreePercentage}%`,
                       width: `${100 - card.agreePercentage}%`,
@@ -96,10 +96,10 @@ const Main = () => {
               </div>
               
               <div className="flex gap-2 mb-2">
-                <button className="flex-1 px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200">
+                <button className="flex-1 px-4 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-200">
                   찬성
                 </button>
-                <button className="flex-1 px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200">
+                <button className="flex-1 px-4 py-2 text-sm font-medium bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200">
                   반대
                 </button>
               </div>
