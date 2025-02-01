@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 
 
-# Create your models here.
 class Topic(models.Model):
     """
     토론 주제를 저장하는 모델
@@ -33,15 +32,9 @@ class Topic(models.Model):
         return self.votes.filter(choice="con").count()
 
     def total_comments(self):
-        """
-        총 댓글 수 (대댓글 포함)
-        """
-        return self.comments.count()
+        return self.comments.count() + self.replies.count()  # 댓글 + 대댓글 개수
 
     def total_likes(self):
-        """
-        총 좋아요 수
-        """
         return self.likes.count()
 
 
@@ -75,7 +68,7 @@ class Vote(models.Model):
 
 class Comment(models.Model):
     """
-    토론에 대한 댓글을 저장하는 모델
+    토론에 대한 일반 댓글을 저장하는 모델 (대댓글 없음)
     """
 
     topic = models.ForeignKey(
@@ -86,24 +79,36 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name="comments",
     )  # 댓글 작성자
-
-    parent = models.ForeignKey(
-        "self", on_delete=models.CASCADE, blank=True, null=True, related_name="replies"
-    )  # 대댓글을 위한 부모 댓글
     content = models.TextField()  # 댓글 내용
     created_at = models.DateTimeField(auto_now_add=True)  # 작성 시간
 
     def __str__(self):
         return f"Comment by {self.user} on {self.topic}"
 
-    @property
-    def is_reply(self):
-        return self.parent is not None
+
+class Reply(models.Model):
+    """
+    대댓글을 저장하는 모델 (부모 댓글을 가짐)
+    """
+
+    comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, related_name="replies"
+    )  # 대댓글의 부모 댓글
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="replies",
+    )  # 대댓글 작성자
+    content = models.TextField()  # 대댓글 내용
+    created_at = models.DateTimeField(auto_now_add=True)  # 작성 시간
+
+    def __str__(self):
+        return f"Reply by {self.user} on Comment: {self.comment.content[:20]}"
 
 
 class Like(models.Model):
     """
-    좋아요를 나타내는 모델
+    좋아요를 나타내는 모델 (토론, 댓글, 대댓글에 대한 좋아요)
     """
 
     user = models.ForeignKey(
@@ -115,6 +120,9 @@ class Like(models.Model):
     comment = models.ForeignKey(
         Comment, on_delete=models.CASCADE, related_name="likes", blank=True, null=True
     )  # 댓글에 대한 좋아요
+    reply = models.ForeignKey(
+        Reply, on_delete=models.CASCADE, related_name="likes", blank=True, null=True
+    )  # 대댓글에 대한 좋아요
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -122,6 +130,7 @@ class Like(models.Model):
             "user",
             "topic",
             "comment",
+            "reply",
         )  # 한 사용자가 동일한 대상에 중복 좋아요 방지
 
     def __str__(self):
@@ -129,3 +138,5 @@ class Like(models.Model):
             return f"Like by {self.user} on Topic: {self.topic.title}"
         elif self.comment:
             return f"Like by {self.user} on Comment: {self.comment.content[:20]}"
+        elif self.reply:
+            return f"Like by {self.user} on Reply: {self.reply.content[:20]}"

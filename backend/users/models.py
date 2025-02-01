@@ -3,6 +3,9 @@ from django.db import models
 
 
 class User(AbstractUser):
+    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    firebase_uid = models.CharField(max_length=128, unique=True, null=True, blank=True)  # Firebase UID 저장
+
 
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(

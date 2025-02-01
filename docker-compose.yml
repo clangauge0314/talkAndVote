@@ -27,12 +27,8 @@ services:
       - ./backend:/app
     ports:
       - "8000:8000"
-    environment:
-      DJANGO_DB_NAME: mydb
-      DJANGO_DB_USER: django_user
-      DJANGO_DB_PASSWORD: django_password
-      DJANGO_DB_HOST: db64
-      DJANGO_DB_PORT: 3307
+    env_file:
+      - ./backend/.env
     depends_on:
       - db
     networks:
