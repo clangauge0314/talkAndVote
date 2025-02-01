@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { BiSearch, BiTrendingUp } from "react-icons/bi";
 import { MdDashboard, MdLocalActivity } from "react-icons/md";
 
-function Navbar() {
+function Navbar({ onLoginClick, onSignupClick }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -121,18 +121,18 @@ function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center ml-8">
-            <Link
-              to="/login"
+            <button
+              onClick={onLoginClick}
               className="text-white hover:bg-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-500"
             >
               로그인
-            </Link>
-            <Link
-              to="/signup"
+            </button>
+            <button
+              onClick={onSignupClick}
               className="ml-4 text-emerald-500 bg-white hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition-all duration-500"
             >
               회원가입
-            </Link>
+            </button>
           </div>
         </div>
 
