@@ -35,7 +35,7 @@ const LoginModal = ({ isOpen, onClose, onSignupClick }) => {
             <FaGithub className="text-xl" />
             Github로 계속하기
           </button>
-          <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-yellow-500 hover:bg-yellow-600 text-white">
+          <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-[#FEE500] hover:bg-[#FEE500]/80 text-white">
             <RiKakaoTalkFill className="text-xl" />
             카카오로 계속하기
           </button>

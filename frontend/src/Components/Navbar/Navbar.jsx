@@ -174,19 +174,25 @@ function Navbar({ onLoginClick, onSignupClick }) {
               </Link>
             </div>
 
-            <div className="pt-2">
-              <Link
-                to="/login"
-                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
+            <div className="pt-2 flex flex-col space-y-2">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onLoginClick();
+                }}
+                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
               >
                 로그인
-              </Link>
-              <Link
-                to="/signup"
-                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
+              </button>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onSignupClick();
+                }}
+                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
               >
                 회원가입
-              </Link>
+              </button>
             </div>
           </div>
         </div>
