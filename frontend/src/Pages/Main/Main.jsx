@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 const Main = () => {
   const popularTopics = [
@@ -6,31 +6,33 @@ const Main = () => {
     "AI/ML",
     "모바일앱",
     "데이터사이언스",
-    "클라우드"
+    "클라우드",
   ];
 
-  const dummyCards = Array(12).fill().map((_, index) => ({
-    id: index + 1,
-    title: [
-      "ChatGPT를 뛰어넘는 AI가 등장할 수 있을까?",
-      "React vs Vue, 프론트엔드의 미래는?",
-      "앱 개발, Flutter vs React Native 어떤 것이 더 효율적일까?",
-      "빅데이터는 개인정보 침해를 정당화할 수 있는가?",
-      "클라우드 서비스, AWS의 독점은 계속될 것인가?",
-      "노코드 도구는 개발자의 일자리를 위협할까?",
-      "블록체인 기술은 금융의 미래가 될 수 있을까?",
-      "메타버스는 실패한 기술인가?",
-      "양자 컴퓨팅, 현실적인 활용 시기는?",
-      "AI 윤리 가이드라인, 누가 제정해야 하는가?",
-      "디지털 화폐가 법정화폐를 대체할 수 있을까?",
-      "자율주행 자동차, 사고의 책임은 누구에게 있는가?"
-    ][index],
-    createdAt: '2024-03-20',
-    votesCount: Math.floor(Math.random() * 100),
-    commentsCount: Math.floor(Math.random() * 50),
-    bookmarks: Math.floor(Math.random() * 30),
-    agreePercentage: Math.floor(Math.random() * 100),
-  }));
+  const dummyCards = Array(12)
+    .fill()
+    .map((_, index) => ({
+      id: index + 1,
+      title: [
+        "ChatGPT를 뛰어넘는 AI가 등장할 수 있을까?",
+        "React vs Vue, 프론트엔드의 미래는?",
+        "앱 개발, Flutter vs React Native 어떤 것이 더 효율적일까?",
+        "빅데이터는 개인정보 침해를 정당화할 수 있는가?",
+        "클라우드 서비스, AWS의 독점은 계속될 것인가?",
+        "노코드 도구는 개발자의 일자리를 위협할까?",
+        "블록체인 기술은 금융의 미래가 될 수 있을까?",
+        "메타버스는 실패한 기술인가?",
+        "양자 컴퓨팅, 현실적인 활용 시기는?",
+        "AI 윤리 가이드라인, 누가 제정해야 하는가?",
+        "디지털 화폐가 법정화폐를 대체할 수 있을까?",
+        "자율주행 자동차, 사고의 책임은 누구에게 있는가?",
+      ][index],
+      createdAt: "2024-03-20",
+      votesCount: Math.floor(Math.random() * 100),
+      commentsCount: Math.floor(Math.random() * 50),
+      bookmarks: Math.floor(Math.random() * 30),
+      agreePercentage: Math.floor(Math.random() * 100),
+    }));
 
   return (
     <div className="w-full px-4 py-4 bg-white">
@@ -46,7 +48,7 @@ const Main = () => {
               </button>
             ))}
           </div>
-          
+
           <div className="flex gap-4">
             <button className="px-4 py-2 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-all duration-200">
               필터
@@ -68,38 +70,45 @@ const Main = () => {
               <h3 className="text-base font-semibold mb-4 text-emerald-900 line-clamp-2 h-[48px]">
                 {card.title}
               </h3>
-              
+
               <div className="mb-3">
                 <div className="flex justify-between text-sm font-medium mb-2">
-                  <span className="text-emerald-500">찬성 {card.agreePercentage}%</span>
-                  <span className="text-gray-500">반대 {100 - card.agreePercentage}%</span>
+                  <span className="text-emerald-500">
+                    찬성 {card.agreePercentage}%
+                  </span>
+                  <span className="text-red-500">
+                    반대 {100 - card.agreePercentage}%
+                  </span>
                 </div>
                 <div className="h-3 rounded-full overflow-hidden relative">
-                  <div className="absolute w-full h-full bg-gray-200"></div>
-                  <div className="absolute h-full bg-emerald-400"
-                    style={{ 
+                  <div className="absolute w-full h-full bg-red-400"></div>
+                  <div
+                    className="absolute h-full bg-emerald-400"
+                    style={{
                       width: `${card.agreePercentage}%`,
                     }}
                   ></div>
-                  <div className="absolute h-full bg-emerald-500 opacity-40"
-                    style={{ 
+                  <div
+                    className="absolute h-full bg-emerald-500 opacity-40"
+                    style={{
                       width: `${card.agreePercentage}%`,
                     }}
                   ></div>
-                  <div className="absolute h-full bg-gray-500 opacity-40"
-                    style={{ 
+                  <div
+                    className="absolute h-full bg-red-500 opacity-40"
+                    style={{
                       left: `${card.agreePercentage}%`,
                       width: `${100 - card.agreePercentage}%`,
                     }}
                   ></div>
                 </div>
               </div>
-              
+
               <div className="flex gap-2 mb-2">
                 <button className="flex-1 px-4 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-200">
                   찬성
                 </button>
-                <button className="flex-1 px-4 py-2 text-sm font-medium bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200">
+                <button className="flex-1 px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200">
                   반대
                 </button>
               </div>
@@ -126,7 +135,7 @@ const Main = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Main
+export default Main;
