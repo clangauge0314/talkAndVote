@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../../../firebase/firebase-init";
 
 const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
   const [formData, setFormData] = useState({
@@ -8,19 +10,108 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
     username: "",
     password: "",
     confirmPassword: "",
+    phone: "",
+    verificationCode: "",
   });
 
+  const [showVerification, setShowVerification] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [verificationId, setVerificationId] = useState("");
   const [error, setError] = useState("");
+  const [isSendingCode, setIsSendingCode] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const generateRecaptcha = () => {
+    try {
+      if (!auth) {
+        throw new Error("Firebase auth is not initialized");
+      }
+
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container",
+        {
+          size: "normal",
+          callback: (response) => {
+            console.log("reCAPTCHA solved:", response);
+          },
+          "expired-callback": () => {
+            console.error("reCAPTCHA expired");
+            if (window.recaptchaVerifier) {
+              window.recaptchaVerifier.clear();
+              window.recaptchaVerifier = null;
+            }
+          },
+        }
+      );
+
+      return window.recaptchaVerifier;
+    } catch (error) {
+      console.error("reCAPTCHA initialization error:", error);
+      throw error;
+    }
+  };
+
+  const handleSendVerification = async () => {
+    try {
+      if (!formData.phone) {
+        setError("휴대폰 번호를 입력해주세요.");
+        return;
+      }
+
+      const appVerifier = await generateRecaptcha();
+      if (!appVerifier) {
+        throw new Error("Failed to initialize reCAPTCHA");
+      }
+
+      const phoneNumber = "+82" + formData.phone.replace(/^0/, "");
+      const confirmationResult = await signInWithPhoneNumber(
+        auth,
+        phoneNumber,
+        appVerifier
+      );
+
+      setVerificationId(confirmationResult);
+      setShowVerification(true);
+      setIsSendingCode(true);
+      setError("");
+      
+      alert("인증번호가 발송되었습니다.");
+    } catch (error) {
+      console.error("인증번호 발송 오류:", error);
+      setError("인증번호 발송에 실패했습니다. 다시 시도해주세요.");
+
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    try {
+      await verificationId.confirm(formData.verificationCode);
+      setIsPhoneVerified(true);
+      alert("휴대폰 인증이 완료되었습니다.");
+    } catch (error) {
+      console.error(error);
+      setError("잘못된 인증번호입니다.");
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
 
-    const { email, username, password, confirmPassword } = formData;
+    const { email, username, password, confirmPassword, phone } = formData;
 
     if (!email.includes("@")) {
       setError("유효한 이메일을 입력하세요.");
@@ -42,6 +133,11 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
       return;
     }
 
+    if (!isPhoneVerified) {
+      setError("휴대폰 인증이 필요합니다.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/signup/`,
@@ -49,6 +145,7 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
           email,
           username,
           password,
+          phone,
         }
       );
 
@@ -70,13 +167,6 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
       console.log(error);
       if (error.response) {
         setError(error.response.data.message || "회원가입에 실패했습니다.");
-
-        //email
-        // :
-        // ['이미 가입된 이메일입니다.']
-        // username
-        // :
-        // ['이미 사용된 사용자 이름입니다.']
       } else {
         setError("서버와의 연결이 원활하지 않습니다.");
       }
@@ -152,11 +242,63 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
             />
           </div>
 
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="휴대폰 번호 (-없이 입력)"
+              className="w-3/4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              required
+            />
+            <button
+              type="button"
+              onClick={handleSendVerification}
+              disabled={isSendingCode}
+              className={`w-1/4 px-4 py-2 bg-emerald-500 text-white rounded-lg transition-colors ${
+                isSendingCode ? "opacity-50 cursor-not-allowed" : "hover:bg-emerald-600"
+              }`}
+            >
+              발송하기
+            </button>
+          </div>
+
+          {showVerification && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="verificationCode"
+                value={formData.verificationCode}
+                onChange={handleChange}
+                placeholder="인증번호 입력"
+                className="w-3/4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+              <button
+                type="button"
+                onClick={handleVerifyCode}
+                disabled={isPhoneVerified}
+                className={`w-1/4 px-4 py-2 bg-emerald-500 text-white rounded-lg transition-colors ${
+                  isPhoneVerified ? "opacity-50 cursor-not-allowed" : "hover:bg-emerald-600"
+                }`}
+              >
+                인증하기
+              </button>
+            </div>
+          )}
+
+          <div className="flex justify-center items-center" id="recaptcha-container"></div>
+
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <button
             type="submit"
-            className="w-full px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            disabled={!isPhoneVerified}
+            className={`w-full px-4 py-2 bg-emerald-500 text-white rounded-lg transition-colors ${
+              !isPhoneVerified
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-emerald-600"
+            }`}
           >
             가입하기
           </button>
