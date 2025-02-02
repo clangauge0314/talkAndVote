@@ -12,6 +12,7 @@ class SignupSerializer(Serializer):
     username: CharField = CharField(max_length=150)
     email: EmailField = EmailField()
     password: CharField = CharField(write_only=True)
+    phone: CharField = CharField(max_length=15)
 
     def validate_email(self, email: str) -> str:
         if User.objects.filter(email=email).exists():
@@ -22,6 +23,11 @@ class SignupSerializer(Serializer):
         if User.objects.filter(username=username).exists():
             raise ValidationError("이미 있는 유저 이름입니다.")  # ✅ 메시지만 반환
         return username
+
+    def validate_phone(self, phone: str) -> str:
+        if User.objects.filter(phone=phone).exists():
+            raise ValidationError("이미 있는 폰 번호 입니다.")
+        return phone
 
     def create(self, validated_data: dict[str, Any]):
         return User.objects.create(
