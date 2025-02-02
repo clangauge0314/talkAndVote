@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
-import Swal from "sweetalert2";
+import { useAuth } from '../../../hooks/useAuth';
 
 const LoginModal = ({ isOpen, onClose, onSignupClick }) => {
   const [formData, setFormData] = useState({
@@ -8,7 +7,7 @@ const LoginModal = ({ isOpen, onClose, onSignupClick }) => {
     password: "",
   });
 
-  const [error, setError] = useState("");
+  const { error, setError, login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,37 +29,7 @@ const LoginModal = ({ isOpen, onClose, onSignupClick }) => {
       return;
     }
 
-    try {
-      const API_URL = import.meta.env.VITE_API_URL;
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/login/`,
-        {
-          email,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
-        Swal.fire({
-          icon: "success",
-          title: "로그인 성공!",
-          text: "환영합니다.",
-          confirmButtonColor: "#34D399",
-        }).then(() => {
-          onClose();
-        });
-      }
-    } catch (error) {
-      if (error.response) {
-        setError(error.response.data.message || "로그인에 실패했습니다.");
-      } else {
-        setError("서버와의 연결이 원활하지 않습니다.");
-      }
-    }
+    await login(email, password, onClose);
   };
 
   return (

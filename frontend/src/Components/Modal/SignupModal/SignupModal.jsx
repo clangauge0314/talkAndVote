@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
-import Swal from "sweetalert2";
+import { useAuth } from '../../../hooks/useAuth';
 
 const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +9,7 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
     confirmPassword: "",
   });
 
-  const [error, setError] = useState("");
+  const { error, setError, signup } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,35 +41,21 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
       return;
     }
 
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/signup/`,
-        {
-          email,
-          username,
-          password,
-        }
-      );
-
-      if (response.status === 201) {
-        Swal.fire({
-          icon: "success",
-          title: "회원가입 성공!",
-          text: "TalkAndVote에 오신것을 환영합니다!",
-          confirmButtonColor: "#34D399",
-        }).then(() => {
-          onClose();
-        });
-
+    const success = await signup(
+      { email, username, password },
+      () => {
         onClose();
+        onLoginClick();
       }
-    } catch (error) {
-      console.log(error);
-      if (error.response) {
-        setError(error.response.data.message || "회원가입에 실패했습니다.");
-      } else {
-        setError("서버와의 연결이 원활하지 않습니다.");
-      }
+    );
+
+    if (success) {
+      setFormData({
+        email: "",
+        username: "",
+        password: "",
+        confirmPassword: "",
+      });
     }
   };
 
