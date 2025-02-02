@@ -59,7 +59,11 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/auth/logout/`, {}, { withCredentials: true });
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/logout/`,
+        {},
+        { withCredentials: true }
+      );
       setIsAuthenticated(false);
       Swal.fire({
         icon: "info",
@@ -91,10 +95,6 @@ export const useAuth = () => {
       return false;
     }
   };
-
-  useEffect(() => {
-    verifyJWT();
-  }, []);
 
   return {
     error,

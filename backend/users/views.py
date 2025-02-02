@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from users.serializers import LoginSerializer, SignupSerializer
 from jwt.exceptions import ExpiredSignatureError, DecodeError
@@ -134,6 +134,8 @@ class VerifyEmailView(APIView):
 
 class VerifyTokensView(APIView):
     """JWT AccessToken & RefreshToken 검증 + 자동 로그아웃"""
+
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
 
     def post(self, request):
         access_token = request.COOKIES.get("access_token")
