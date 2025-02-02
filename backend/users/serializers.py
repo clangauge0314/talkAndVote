@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer, CharField, EmailField
 from django.core.mail import send_mail
+from utils.token import generate_email_token
 
 User = get_user_model()
 
@@ -25,17 +26,22 @@ class SignupSerializer(Serializer):
             raise ValidationError("이미 있는 유저 이름입니다.")  # ✅ 메시지만 반환
         return username
 
-    def validate_phone(self, phone: str) -> str:
-        if User.objects.filter(phone=phone).exists():
-            raise ValidationError("이미 있는 폰 번호 입니다.")
-        return phone
-
     def create(self, validated_data: dict[str, Any]):
-        return User.objects.create(
+        """사용자 생성 + 이메일 인증 메일 발송"""
+        user = User.objects.create(
             username=validated_data["username"],
             email=validated_data["email"],
             password=make_password(validated_data["password"]),
+            is_active=False,  # 이메일 인증 전까지 비활성화 상태
         )
+
+        # 이메일 인증 토큰 생성
+        token = generate_email_token(user)
+
+        # 이메일 전송
+        self.send_verification_email(user.email, token)
+
+        return user
 
     def send_verification_email(self, email: str, token: str) -> None:
         """사용자에게 이메일 인증 링크 전송"""

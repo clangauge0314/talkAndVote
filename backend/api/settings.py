@@ -71,7 +71,12 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 # settings.py (테스트 환경)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "jmh4011@gmail.com"  # 발신 이메일
+EMAIL_HOST_PASSWORD = "rnfk khjq vcjq daxs"  # Gmail 앱 비밀번호
 
 
 REST_FRAMEWORK = {
