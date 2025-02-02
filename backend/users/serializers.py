@@ -1,8 +1,10 @@
 from typing import Any
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer, CharField, EmailField
+from django.core.mail import send_mail
 
 User = get_user_model()
 
@@ -12,7 +14,6 @@ class SignupSerializer(Serializer):
     username: CharField = CharField(max_length=150)
     email: EmailField = EmailField()
     password: CharField = CharField(write_only=True)
-    phone: CharField = CharField(max_length=15)
 
     def validate_email(self, email: str) -> str:
         if User.objects.filter(email=email).exists():
@@ -34,6 +35,18 @@ class SignupSerializer(Serializer):
             username=validated_data["username"],
             email=validated_data["email"],
             password=make_password(validated_data["password"]),
+        )
+
+    def send_verification_email(self, email: str, token: str) -> None:
+        """사용자에게 이메일 인증 링크 전송"""
+        verification_url = f"http://localhost:8000/api/auth/verify-email/?token={token}"
+
+        send_mail(
+            "이메일 인증을 완료해주세요",
+            f"아래 링크를 클릭하여 이메일 인증을 완료하세요: {verification_url}",
+            settings.EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
         )
 
 

@@ -3,11 +3,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
-    firebase_uid = models.CharField(
-        max_length=128, unique=True, null=True, blank=True
-    )  # Firebase UID 저장
-
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(
         max_length=10,
@@ -24,6 +19,8 @@ class User(AbstractUser):
 
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     is_logged_in = models.BooleanField(default=False)
+
+    is_verified = models.BooleanField(default=False)  # 이메일 인증 여부
 
     REQUIRED_FIELDS = ["email", "first_name", "last_name"]  # 추가 필수 입력 필드
     USERNAME_FIELD = "username"  # 기본 인증에 사용할 필드 (기본값: username)
