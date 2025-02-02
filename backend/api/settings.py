@@ -14,16 +14,9 @@ import os
 from pathlib import Path
 from utils.config import Config
 from datetime import timedelta
-import firebase_admin
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
-FIREBASE_CREDENTIALS = os.path.join(BASE_DIR, "firebase_key.json")
-
-cred = firebase_admin.credentials.Certificate(FIREBASE_CREDENTIALS)
-firebase_admin.initialize_app(cred)
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -47,9 +40,34 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",  # 필수
+    "allauth",
+    "allauth.account",  # 기본 로그인 기능
+    "allauth.socialaccount",  # 소셜 로그인 기능
+    "allauth.socialaccount.providers.google",  # Google 로그인 추가
     "users",
     "topics",
 ]
+
+# 사이트 ID 설정 (필수)
+SITE_ID = 1
+
+# 소셜 로그인 관련 설정
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",  # 기본 인증
+    "allauth.account.auth_backends.AuthenticationBackend",  # 소셜 로그인 인증
+]
+
+# 로그인 URL 설정
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": ["email", "profile"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    }
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
@@ -72,6 +90,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
