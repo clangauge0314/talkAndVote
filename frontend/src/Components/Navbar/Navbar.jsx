@@ -2,8 +2,11 @@ import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { BiSearch, BiTrendingUp } from "react-icons/bi";
 import { MdDashboard, MdLocalActivity } from "react-icons/md";
+import Avatar from 'react-avatar';
+import { useAuth } from '../../hooks/useAuth';
 
 function Navbar({ onLoginClick, onSignupClick }) {
+  const { isAuthenticated, user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -42,6 +45,116 @@ function Navbar({ onLoginClick, onSignupClick }) {
     document.addEventListener('mouseup', handleMouseUp);
     return () => document.removeEventListener('mouseup', handleMouseUp);
   }, []);
+
+  const UserMenu = () => (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center focus:outline-none"
+      >
+        <Avatar
+          name={user?.username || "User"}
+          size="40"
+          round={true}
+          className="cursor-pointer"
+        />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
+          <Link
+            to="/profile"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            프로필
+          </Link>
+          <Link
+            to="/settings"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            설정
+          </Link>
+          <button
+            onClick={logout}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            로그아웃
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const AuthButtons = () => (
+    <div className="hidden md:flex items-center ml-8">
+      {isAuthenticated ? (
+        <UserMenu />
+      ) : (
+        <>
+          <button
+            onClick={onLoginClick}
+            className="text-white hover:bg-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-500"
+          >
+            로그인
+          </button>
+          <button
+            onClick={onSignupClick}
+            className="ml-4 text-emerald-500 bg-white hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition-all duration-500"
+          >
+            회원가입
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const MobileAuthButtons = () => (
+    <div className="pt-2 flex flex-col space-y-2">
+      {isAuthenticated ? (
+        <>
+          <Link
+            to="/profile"
+            className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
+          >
+            프로필
+          </Link>
+          <Link
+            to="/settings"
+            className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
+          >
+            설정
+          </Link>
+          <button
+            onClick={logout}
+            className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
+          >
+            로그아웃
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onLoginClick();
+            }}
+            className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
+          >
+            로그인
+          </button>
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onSignupClick();
+            }}
+            className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
+          >
+            회원가입
+          </button>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <nav className="bg-emerald-500">
@@ -120,20 +233,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
             </button>
           </div>
 
-          <div className="hidden md:flex items-center ml-8">
-            <button
-              onClick={onLoginClick}
-              className="text-white hover:bg-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-500"
-            >
-              로그인
-            </button>
-            <button
-              onClick={onSignupClick}
-              className="ml-4 text-emerald-500 bg-white hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition-all duration-500"
-            >
-              회원가입
-            </button>
-          </div>
+          <AuthButtons />
         </div>
 
         <div 
@@ -174,26 +274,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
               </Link>
             </div>
 
-            <div className="pt-2 flex flex-col space-y-2">
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  onLoginClick();
-                }}
-                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
-              >
-                로그인
-              </button>
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  onSignupClick();
-                }}
-                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
-              >
-                회원가입
-              </button>
-            </div>
+            <MobileAuthButtons />
           </div>
         </div>
       </div>

@@ -29,7 +29,10 @@ const LoginModal = ({ isOpen, onClose, onSignupClick }) => {
       return;
     }
 
-    await login(email, password, onClose);
+    if (await login(email, password)) {
+      setFormData({ email: "", password: "" });
+      onClose();
+    }
   };
 
   return (

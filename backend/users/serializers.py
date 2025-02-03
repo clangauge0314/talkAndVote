@@ -73,10 +73,6 @@ class LoginSerializer(Serializer):
         if not user.is_active:
             raise ValidationError("계정이 비활성화되었습니다.")  # ✅ 메시지만 반환
 
-        # 로그인 상태 확인 (is_logged_in 필드가 있다고 가정)
-        if hasattr(user, "is_logged_in") and user.is_logged_in:
-            raise ValidationError("이미 로그인된 사용자입니다.")  # ✅ 메시지만 반환
-
         # 비밀번호 확인
         if not user.check_password(password):
             raise ValidationError("잘못된 비밀번호입니다.")  # ✅ 메시지만 반환

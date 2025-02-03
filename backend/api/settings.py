@@ -81,17 +81,20 @@ EMAIL_HOST_PASSWORD = "rnfk khjq vcjq daxs"  # Gmail 앱 비밀번호
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",  # ✅ 올바른 Permission 클래스
+        "rest_framework.permissions.IsAuthenticated",  # 기본적으로 인증 필요
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",  # ✅ 인증은 따로 설정
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
 }
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),  
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',), 
+    'TOKEN_TYPE_CLAIM': 'token_type',  
 }
 
 MIDDLEWARE = [
