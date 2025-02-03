@@ -71,12 +71,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 # settings.py (테스트 환경)
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "jmh4011@gmail.com"  # 발신 이메일
-EMAIL_HOST_PASSWORD = "rnfk khjq vcjq daxs"  # Gmail 앱 비밀번호
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 REST_FRAMEWORK = {
@@ -112,7 +107,6 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://427b-211-203-54-221.ngrok-free.app",
 ]
 CORS_ALLOW_METHODS = [
     "GET",
