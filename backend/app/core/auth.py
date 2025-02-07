@@ -19,16 +19,16 @@ async def set_auth_cookies(response: Response, access_token: str, refresh_token:
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True,
-        samesite="Strict",
+        secure=False,
+        samesite=None,
         max_age=int(Config.ACCESS_TOKEN_EXPIRE.total_seconds()),  # 쿠키 만료 시간 설정
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
-        samesite="Strict",
+        secure=False,
+        samesite=None,
         max_age=int(Config.REFRESH_TOKEN_EXPIRE.total_seconds()),  # 쿠키 만료 시간 설정
     )
 
@@ -49,7 +49,7 @@ async def get_user_id(db: AsyncSession, request: Request, response: Response) ->
     user_id = await verify_token(refresh_token)
     if user_id is None:
         logger.warning("Invalid refresh token")
-        raise HTTPException(status_code=401, detail="User Unauthorized")
+        raise HTTPException(status_code=401, detail="User1 Unauthorized")
 
     # 새로운 access token 및 refresh token 생성
     new_access_token = await create_access_token(user_id)

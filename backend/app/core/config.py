@@ -1,6 +1,9 @@
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # .env 파일 로드
 load_dotenv()
@@ -11,14 +14,15 @@ class Config:
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "1521")  # Oracle 기본 포트
-    DB_SERVICE = os.getenv("DB_SERVICE")  # 서비스 이름 또는 SID
+    DB_NAME = os.getenv("DB_NAME")  # 서비스 이름 또는 SID
 
     # Oracle 연결 문자열 구성
-    TMP_DB = f"{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_SERVICE}"
+    TMP_DB = f"{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = f"mysql+asyncmy://{TMP_DB}"  
+    SYNC_DATABASE_URL = f"mysql+pymysql://{TMP_DB}"  
+    
+    
 
-    # SQLAlchemy 비동기 및 동기 연결 URL
-    DATABASE_URL = f"oracle+oracledb://{TMP_DB}"  # 비동기
-    SYNC_DATABASE_URL = f"oracle+cx_oracle://{TMP_DB}"  # 동기
 
     # JWT 설정
     SECRET_KEY = os.getenv("SECRET_KEY", "your_default_secret")
@@ -33,7 +37,8 @@ class Config:
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
     EMAIL_FROM = os.getenv("EMAIL_FROM")
     EMAIL_FROM_NAME = os.getenv("EMAIL_FROM_NAME", "FastAPI App")
-    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")  # 인증 후 리다이렉트 URL
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # 설정 인스턴스 생성
 config = Config()

@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/login/`,
+        `${import.meta.env.VITE_API_URL}/users/login/`,
         { email, password },
         { withCredentials: true }
       );
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.log(error);
-      setError(error.response?.data.error || "로그인에 실패했습니다.");
+      setError(error.response?.data.detail || "로그인에 실패했습니다.");
       setIsAuthenticated(false);
       return false;
     }
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/signup/`,
+        `${import.meta.env.VITE_API_URL}/users/signup/`,
         userData
       );
 
@@ -53,12 +53,12 @@ export const AuthProvider = ({ children }) => {
         Swal.fire({
           icon: "success",
           title: "회원가입 성공!",
-          text: "TalkAndVote에 오신 것을 환영합니다!",
+          text: "이메일 인증을 완료하여 계정을 활성화해주세요.",
           confirmButtonColor: "#34D399",
         })
       }
     } catch (error) {
-      setError(error.response?.data.message || "회원가입에 실패했습니다.");
+      setError(error.response?.data.detail || "회원가입에 실패했습니다.");
       return false;
     }
   };
@@ -66,13 +66,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/logout/`,
-        {},
+        `${import.meta.env.VITE_API_URL}/users/logout`,{},
         { 
           withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          }
         }
       );
       
@@ -108,16 +104,15 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/auth/profile/`,
+        `${import.meta.env.VITE_API_URL}/auth/`,
         { withCredentials: true }
       );
 
-      if (response.status === 200) {
-        setIsAuthenticated(true);
-        setUser(response.data);
-        setLastVerified(now);
-        return true;
-      }
+      setIsAuthenticated(true);
+      setUser(response.data);
+      setLastVerified(now);
+      return true;
+
     } catch (error) {
       console.error("JWT 검증 실패:", error);
       if (error.response?.status === 401) {

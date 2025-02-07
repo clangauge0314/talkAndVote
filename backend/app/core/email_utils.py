@@ -4,7 +4,12 @@ from aiosmtplib import send
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from jinja2 import Template
-from core.config import Config  # 환경 변수 사용
+from app.core.config import Config  # 환경 변수 사용
+
+from aiosmtplib import send
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from app.core.config import Config  # 환경 변수 사용
 
 async def send_email(to_email: str, subject: str, html_content: str):
     message = MIMEMultipart()
@@ -20,7 +25,7 @@ async def send_email(to_email: str, subject: str, html_content: str):
         port=Config.SMTP_PORT,
         username=Config.SMTP_USER,
         password=Config.SMTP_PASSWORD,
-        use_tls=True,
+        start_tls=False  # MailHog는 TLS를 사용하지 않음
     )
 
 def generate_verification_email(to_email: str, token: str) -> str:
@@ -29,4 +34,4 @@ def generate_verification_email(to_email: str, token: str) -> str:
     <p>다음 링크를 클릭하여 이메일 인증을 완료하세요:</p>
     <a href="{{ frontend_url }}/verify-email?token={{ token }}">이메일 인증하기</a>
     """)
-    return template.render(frontend_url=Config.FRONTEND_URL, token=token)
+    return template.render(frontend_url=Config.BACKEND_URL, token=token)

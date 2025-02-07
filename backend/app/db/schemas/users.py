@@ -30,8 +30,13 @@ class UserSchemas(UserBase):
         from_attributes = True
 
 
-class UserLogin(UserBase):
-    pass
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 class UserSignUp(UserBase):
     pass
+
+class UserResponse(BaseModel):
+    email: str
+    username: str
