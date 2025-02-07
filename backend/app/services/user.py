@@ -1,7 +1,7 @@
 # app/services/user.py
 
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.crud.user import UserCrud
 from app.db.schemas.users import UserCreate, UserLogin, UserSignUp
 from app.core.jwt_handler import (

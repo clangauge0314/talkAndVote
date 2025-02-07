@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { BiSearch, BiTrendingUp } from "react-icons/bi";
-import { MdDashboard, MdLocalActivity } from "react-icons/md";
+import { MdDashboard, MdLocalActivity, MdAdd } from "react-icons/md";
 import Avatar from 'react-avatar';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -14,13 +14,14 @@ function Navbar({ onLoginClick, onSignupClick }) {
   const categoriesRef = useRef(null);
 
   const categories = [
-    "전체",
-    "최신",
+    "유머/이슈",
     "정치",
     "경제",
     "암호화폐",
     "스포츠",
+    "연애",
     "IT",
+    "기타",
   ];
 
   const handleMouseDown = (e) => {
@@ -173,7 +174,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
                 <input
                   type="text"
                   className="block w-full pl-10 pr-3 py-2 border border-transparent rounded-md leading-5 bg-emerald-100 text-emerald-900 placeholder-emerald-500 hover:bg-white hover:text-emerald-900 hover:placeholder-emerald-400 sm:text-sm transition-all duration-500"
-                  placeholder="주제 검색하기..."
+                  placeholder="토픽 검색하기..."
                 />
               </div>
 
@@ -198,6 +199,13 @@ function Navbar({ onLoginClick, onSignupClick }) {
                 >
                   <BiTrendingUp className="h-6 w-6 mb-1" />
                   <span className="text-xs font-medium">랭킹</span>
+                </Link>
+                <Link
+                  to="/create-topic"
+                  className="flex flex-col items-center text-white hover:text-gray-200 transition-all duration-500"
+                >
+                  <MdAdd className="h-6 w-6 mb-1" />
+                  <span className="text-xs font-medium">토픽 생성</span>
                 </Link>
               </div>
             </div>
@@ -249,7 +257,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
               <input
                 type="text"
                 className="block w-full pl-10 pr-3 py-2 border border-transparent rounded-md leading-5 bg-emerald-100 text-emerald-900 placeholder-emerald-500 hover:bg-white hover:text-emerald-900 hover:placeholder-emerald-400 sm:text-sm transition-all duration-500"
-                placeholder="주제 검색하기..."
+                placeholder="토픽 검색하기..."
               />
             </div>
             
@@ -271,6 +279,12 @@ function Navbar({ onLoginClick, onSignupClick }) {
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
                 랭킹
+              </Link>
+              <Link
+                to="/create-topic"
+                className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
+              >
+                토픽 생성
               </Link>
             </div>
 

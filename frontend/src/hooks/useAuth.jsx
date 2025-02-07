@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (response.status === 200) {
-        setUser(response.data.user);
+        setUser(response.data);
         setIsAuthenticated(true);
         await verifyJWT();
         

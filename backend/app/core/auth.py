@@ -37,6 +37,7 @@ async def get_user_id(db: AsyncSession, request: Request, response: Response) ->
     access_token = request.cookies.get("access_token")
     refresh_token = request.cookies.get("refresh_token")
 
+    logger.warning(refresh_token)
     if not refresh_token:
         logger.warning("Missing refresh token")
         raise HTTPException(status_code=401, detail="User Unauthorized")
@@ -52,8 +53,8 @@ async def get_user_id(db: AsyncSession, request: Request, response: Response) ->
         raise HTTPException(status_code=401, detail="User1 Unauthorized")
 
     # 새로운 access token 및 refresh token 생성
-    new_access_token = await create_access_token(user_id)
-    new_refresh_token = await create_refresh_token(user_id)
+    new_access_token = create_access_token(user_id)
+    new_refresh_token = create_refresh_token(user_id)
     await set_auth_cookies(
         response=response,
         access_token=new_access_token,

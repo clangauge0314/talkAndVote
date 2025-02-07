@@ -12,3 +12,4 @@ class Reply(Base):
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     
     comment = relationship("Comment", back_populates="replies")
+    likes = relationship("ReplyLike", back_populates="reply", cascade="all, delete-orphan")

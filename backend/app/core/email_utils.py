@@ -32,6 +32,6 @@ def generate_verification_email(to_email: str, token: str) -> str:
     template = Template("""
     <h1>이메일 인증</h1>
     <p>다음 링크를 클릭하여 이메일 인증을 완료하세요:</p>
-    <a href="{{ frontend_url }}/verify-email?token={{ token }}">이메일 인증하기</a>
+    <a href="{{ backend_url }}/verify-email?token={{ token }}">이메일 인증하기</a>
     """)
-    return template.render(frontend_url=Config.BACKEND_URL, token=token)
+    return template.render(backend_url=Config.BACKEND_URL, token=token)

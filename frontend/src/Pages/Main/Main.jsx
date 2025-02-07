@@ -1,6 +1,20 @@
-import React from "react";
+import { React, useEffect, useState } from "react";
+import { useTopic } from "../../hooks/useTopic";
 
 const Main = () => {
+  const { fetchTopic } = useTopic();
+
+  const [topics, setTopics] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTopics = async () => {
+      const data = await fetchTopic(setTopics, setLoading);
+    };
+
+    loadTopics();
+  }, []);
+
   const popularTopics = [
     "웹개발",
     "AI/ML",

@@ -16,3 +16,16 @@ class VoteCrud:
     async def get_votes_by_topic(db: AsyncSession, topic_id: int):
         result = await db.execute(select(Vote).filter(Vote.topic_id == topic_id))
         return result.scalars().all()
+    
+    @staticmethod
+    async def get_votes_by_user(db: AsyncSession, user_id: int):
+        result = await db.execute(select(Vote).filter(Vote.user_id == user_id))
+        return result.scalars().all()
+
+    # ✅ 특정 유저가 특정 주제에 투표했는지 확인하는 메서드
+    @staticmethod
+    async def get_vote_by_topic_and_user(db: AsyncSession, topic_id: int, user_id: int):
+        result = await db.execute(
+            select(Vote).filter((Vote.topic_id == topic_id) & (Vote.user_id == user_id))
+        )
+        return result.scalar_one_or_none()  # 투표 기록이 없으면 None 반환

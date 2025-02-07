@@ -23,7 +23,7 @@ export const useProfile = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/auth/profile/`,
+        `${import.meta.env.VITE_API_URL}/profile`,
         { withCredentials: true }
       );
       return response.data;
@@ -57,7 +57,7 @@ export const useProfile = () => {
     setLoading(true);
     try {
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/auth/profile/`,
+        `${import.meta.env.VITE_API_URL}/profile`,
         profileData,
         { 
           withCredentials: true,
@@ -67,14 +67,13 @@ export const useProfile = () => {
         }
       );
       
-      setUser(response.data);
       Swal.fire({
         icon: 'success',
         title: '프로필 수정 완료',
         text: '프로필이 성공적으로 수정되었습니다.',
         confirmButtonColor: '#34D399',
       });
-      return response.data;
+
     } catch (error) {
       if (await handleAuthError(error)) return;
       Swal.fire({
@@ -104,7 +103,7 @@ export const useProfile = () => {
 
       if (result.isConfirmed) {
         await axios.delete(
-          `${import.meta.env.VITE_API_URL}/auth/profile/`,
+          `${import.meta.env.VITE_API_URL}/users/`,
           { withCredentials: true }
         );
         

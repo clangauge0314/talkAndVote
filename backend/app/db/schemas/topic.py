@@ -4,7 +4,8 @@ from datetime import datetime
 # Topic (투표 주제)
 class TopicBase(BaseModel):
     title: str
-    vote_option: list[str]
+    category: str = "기타"
+    vote_options: list[str]
     description: str | None = None
 
 class TopicCreate(TopicBase):
@@ -18,4 +19,7 @@ class TopicSchemas(TopicBase):
         from_attributes = True
         
 class TopicResponse(TopicSchemas):
-    vote: int | None = None
+    has_voted: bool = False
+    user_vote_index: int | None = None
+    like_count: int = 0
+    has_liked: bool = False

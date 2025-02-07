@@ -1,13 +1,14 @@
-# app/db/schemas/users.py
-
-from pydantic import BaseModel, Field
-from datetime import datetime, timezone
+from pydantic import BaseModel, Field, HttpUrl
+from datetime import datetime, date, timezone
 
 
 class UserBase(BaseModel):
     email: str
     username: str
     password: str
+    gender: str | None = None
+    birthdate: date | None = None
+    profile_url: HttpUrl | None = None  # 프로필 사진 URL (유효한 URL인지 검증)
 
 
 class UserCreate(UserBase):
@@ -19,6 +20,9 @@ class UserUpdate(BaseModel):
     username: str | None = None
     password: str | None = None
     is_verified: bool | None = None
+    gender: str | None = None
+    birthdate: date | None = None
+    profile_url: HttpUrl | None = None
 
 
 class UserSchemas(UserBase):
@@ -34,9 +38,24 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+
 class UserSignUp(UserBase):
     pass
+
 
 class UserResponse(BaseModel):
     email: str
     username: str
+    
+class profileResponse(BaseModel):
+    email: str
+    username: str
+    gender: str | None = None
+    birthdate: date | None = None
+    profile_url: HttpUrl | None = None
+
+class profileUpdate(BaseModel):
+    username: str | None = None
+    gender: str | None = None
+    birthdate: date | None = None
+    profile_url: HttpUrl | None = None

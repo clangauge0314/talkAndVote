@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
 from app.db.database import Base, async_engine
-from app.routers import user, auth
+from app.routers import user, auth, profile, topic
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
@@ -36,6 +36,9 @@ app.add_middleware(
 # 라우터 추가
 app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(profile.router)
+app.include_router(topic.router)
+
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

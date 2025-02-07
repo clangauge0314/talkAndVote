@@ -65,3 +65,10 @@ async def logout_user_route(request: Request, response: Response, db: AsyncSessi
     response.delete_cookie(key="refresh_token")
     return "Logout successful"
 
+@router.delete("/users")
+async def delete_user_route(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+    user_id = await get_user_id(db, request, response)
+    db_user = await UserCrud.delete(db,user_id)
+    await db.commit()
+    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")

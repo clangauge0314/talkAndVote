@@ -13,3 +13,4 @@ class Comment(Base):
     
     topic = relationship("Topic", back_populates="comments")
     replies = relationship("Reply", back_populates="comment", cascade="all, delete-orphan")
+    likes = relationship("CommentLike", back_populates="comment", cascade="all, delete-orphan")

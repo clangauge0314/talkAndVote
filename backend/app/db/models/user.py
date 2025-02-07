@@ -1,5 +1,3 @@
-# app/db/model/users.py
-
 from sqlalchemy import (
     Boolean,
     Column,
@@ -8,6 +6,7 @@ from sqlalchemy import (
     String,
     TIMESTAMP,
     func,
+    Date
 )
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -21,4 +20,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     password = Column(String(255), nullable=False)
     is_verified = Column(Boolean, default=False)
+    gender = Column(String(10), nullable=True)
+    birthdate = Column(Date, nullable=True)
+    profile_url = Column(String(255), nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=True)
