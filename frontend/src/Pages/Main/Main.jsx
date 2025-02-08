@@ -1,52 +1,24 @@
 import { React, useEffect, useState } from "react";
 import { useTopic } from "../../hooks/useTopic";
 
-const Main = () => {
-  const { fetchTopic } = useTopic();
+const voteColors = ["blue", "yellow", "orange", "purple", "pink", "teal"];
 
+const Main = () => {
+  const { fetchTopics } = useTopic();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTopics = async () => {
-      const data = await fetchTopic(setTopics, setLoading);
+      const data = await fetchTopics();
+      if (data) setTopics(data);
+      setLoading(false);
     };
 
     loadTopics();
   }, []);
 
-  const popularTopics = [
-    "웹개발",
-    "AI/ML",
-    "모바일앱",
-    "데이터사이언스",
-    "클라우드",
-  ];
-
-  const dummyCards = Array(12)
-    .fill()
-    .map((_, index) => ({
-      id: index + 1,
-      title: [
-        "ChatGPT를 뛰어넘는 AI가 등장할 수 있을까?",
-        "React vs Vue, 프론트엔드의 미래는?",
-        "앱 개발, Flutter vs React Native 어떤 것이 더 효율적일까?",
-        "빅데이터는 개인정보 침해를 정당화할 수 있는가?",
-        "클라우드 서비스, AWS의 독점은 계속될 것인가?",
-        "노코드 도구는 개발자의 일자리를 위협할까?",
-        "블록체인 기술은 금융의 미래가 될 수 있을까?",
-        "메타버스는 실패한 기술인가?",
-        "양자 컴퓨팅, 현실적인 활용 시기는?",
-        "AI 윤리 가이드라인, 누가 제정해야 하는가?",
-        "디지털 화폐가 법정화폐를 대체할 수 있을까?",
-        "자율주행 자동차, 사고의 책임은 누구에게 있는가?",
-      ][index],
-      createdAt: "2024-03-20",
-      votesCount: Math.floor(Math.random() * 100),
-      commentsCount: Math.floor(Math.random() * 50),
-      bookmarks: Math.floor(Math.random() * 30),
-      agreePercentage: Math.floor(Math.random() * 100),
-    }));
+  const popularTopics = ["웹개발", "AI/ML", "모바일앱", "데이터사이언스", "클라우드"];
 
   return (
     <div className="w-full px-4 py-4 bg-white">
@@ -76,76 +48,81 @@ const Main = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {dummyCards.map((card) => (
-            <div
-              key={card.id}
-              className="border border-emerald-100 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-white flex flex-col h-[230px]"
-            >
-              <h3 className="text-base font-semibold mb-4 text-emerald-900 line-clamp-2 h-[48px]">
-                {card.title}
-              </h3>
+          {loading ? (
+            <p className="text-center text-gray-500 col-span-4">로딩 중...</p>
+          ) : topics.length > 0 ? (
+            topics.map((topic) => {
+              const totalVotes = topic.total_vote || 1; 
+              return (
+                <div
+                  key={topic.topic_id}
+                  className={`border border-emerald-100 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-white flex flex-col h-[250px] ${
+                    topic.has_voted ? "opacity-80" : ""
+                  }`}
+                >
+                  <h3 className="text-base font-semibold mb-4 text-emerald-900 line-clamp-2 h-[48px]">
+                    {topic.title}
+                  </h3>
 
-              <div className="mb-3">
-                <div className="flex justify-between text-sm font-medium mb-2">
-                  <span className="text-emerald-500">
-                    찬성 {card.agreePercentage}%
-                  </span>
-                  <span className="text-red-500">
-                    반대 {100 - card.agreePercentage}%
-                  </span>
-                </div>
-                <div className="h-3 rounded-full overflow-hidden relative">
-                  <div className="absolute w-full h-full bg-red-400"></div>
-                  <div
-                    className="absolute h-full bg-emerald-400"
-                    style={{
-                      width: `${card.agreePercentage}%`,
-                    }}
-                  ></div>
-                  <div
-                    className="absolute h-full bg-emerald-500 opacity-40"
-                    style={{
-                      width: `${card.agreePercentage}%`,
-                    }}
-                  ></div>
-                  <div
-                    className="absolute h-full bg-red-500 opacity-40"
-                    style={{
-                      left: `${card.agreePercentage}%`,
-                      width: `${100 - card.agreePercentage}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
+                  <div className="flex gap-2 mb-2">
+                    {topic.vote_options.map((option, index) => {
+                      const votePercentage = totalVotes
+                        ? Math.round((topic.vote_results[index] / totalVotes) * 100)
+                        : 0;
 
-              <div className="flex gap-2 mb-2">
-                <button className="flex-1 px-4 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-200">
-                  찬성
-                </button>
-                <button className="flex-1 px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200">
-                  반대
-                </button>
-              </div>
+                      let buttonColor = "gray"; 
+                      if (topic.vote_options.length === 2) {
+                        buttonColor = index === 0 ? "emerald" : "red"; 
+                      } else {
+                        buttonColor = voteColors[index % voteColors.length]; 
+                      }
 
-              <div className="mt-auto flex justify-between items-center text-xs text-gray-500">
-                <span>{card.createdAt}</span>
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1">
-                    <i className="fas fa-users"></i>
-                    {card.votesCount}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <i className="fas fa-comment"></i>
-                    {card.commentsCount}
-                  </span>
-                  <button className="flex items-center gap-1 hover:text-emerald-500 transition-colors">
-                    <i className="fas fa-star"></i>
-                    {card.bookmarks}
-                  </button>
+                      return (
+                        <div key={index} className="w-full relative">
+                          <button
+                            className={`w-full px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                              topic.has_voted
+                                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                : `bg-${buttonColor}-500 text-white hover:bg-${buttonColor}-600`
+                            }`}
+                            disabled={topic.has_voted}
+                          >
+                            {option}
+                          </button>
+                          <div className="w-full h-2 bg-gray-200 rounded-full mt-2 relative overflow-hidden">
+                            <div
+                              className={`absolute h-full bg-${buttonColor}-500 rounded-full`}
+                              style={{ width: `${votePercentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs text-gray-500 block mt-1">
+                            {votePercentage}% ({topic.vote_results[index]}표)
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-auto flex justify-between items-center text-xs text-gray-500">
+                    <span>{new Date(topic.created_at).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1">
+                        <i className="fas fa-heart"></i>
+                        {topic.like_count}
+                      </span>
+                      {topic.has_voted && (
+                        <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded">
+                          투표 완료
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              );
+            })
+          ) : (
+            <p className="text-center text-gray-500 col-span-4">등록된 토픽이 없습니다.</p>
+          )}
         </div>
       </div>
     </div>

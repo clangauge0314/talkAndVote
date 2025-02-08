@@ -16,10 +16,10 @@ export const useTopic = () => {
         return false;
     };
 
-    const fetchTopic = async () => {
+    const fetchTopics = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/topic`, { withCredentials: true });
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/topics`, { withCredentials: true });
 
             if (response.status === 200 && response.data) {
                 console.log(response.data)
@@ -179,6 +179,6 @@ export const useTopic = () => {
     return {
         loading,
         addTopic,
-        fetchTopic
+        fetchTopics
     };
 };

@@ -19,6 +19,8 @@ router = APIRouter()
 async def auth_user_route(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     user_id = await get_user_id(db=db, request=request, response=response)
     user = await UserCrud.get(db, user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not find")
     return user
 
 

@@ -79,6 +79,11 @@ class TopicService:
         topic_responses = []
         for topic in topics:
             like_count = await LikeCrud.get_topic_like_count(db, topic.topic_id)
+            votes = await VoteCrud.get_votes_by_topic(db, topic.topic_id)
+            vote_results = [0] * len(topic.vote_options)  # 투표 옵션 수만큼 0으로 초기화
+            for vote in votes:
+                if 0 <= vote.vote_index < len(vote_results):
+                    vote_results[vote.vote_index] += 1
 
             topic_response = TopicResponse(
                 topic_id=topic.topic_id,
@@ -86,7 +91,9 @@ class TopicService:
                 description=topic.description,
                 vote_options=topic.vote_options,
                 created_at=topic.created_at,
-                like_count=like_count
+                vote_results= vote_results,
+                like_count=like_count,
+                total_vote=len(votes)
             )
             
             if user_id is not None:

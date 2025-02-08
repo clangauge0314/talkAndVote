@@ -23,3 +23,5 @@ class TopicResponse(TopicSchemas):
     user_vote_index: int | None = None
     like_count: int = 0
     has_liked: bool = False
+    vote_results: list[int] = []
+    total_vote: int = 0

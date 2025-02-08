@@ -8,7 +8,7 @@ from app.services.topic import TopicService
 
 router = APIRouter() 
 
-@router.get("/topic", response_model=list[TopicResponse])
+@router.get("/topics", response_model=list[TopicResponse])
 async def get_topics_route(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     topics = await TopicService.get_topics_with_filters(db=db)
     
