@@ -14,7 +14,7 @@ async def get_topics_route(request: Request, response: Response, db: AsyncSessio
     
     try:
         # ✅ 로그인한 유저: user_id 가져오기
-        user_id = await get_user_id(db,request,response)
+        user_id = await get_user_id(request)
 
         # 로그인한 유저: 좋아요 여부, 투표 여부 포함해서 주제 반환
         topic_response = await TopicService.get_topics_to_responses(db,topics ,user_id)
@@ -26,7 +26,7 @@ async def get_topics_route(request: Request, response: Response, db: AsyncSessio
 
 @router.post("/topic", response_model=TopicSchemas)
 async def create_topic_route(topic: TopicCreate, user_id: int = Depends(get_user_id), db: AsyncSession = Depends(get_db)):
-    db_topic = await TopicCrud.create(db=db, topic_data=topic)
+    db_topic = await TopicCrud.create(db=db, topic_data=topic, user_id=user_id)
     await db.commit()
     await db.refresh(db_topic)
     return db_topic

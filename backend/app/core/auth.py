@@ -40,7 +40,7 @@ async def get_user_id(request: Request) -> int:
     if not access_token:
         raise HTTPException(status_code=401, detail="Access token missing")
 
-    user_id = await verify_token(access_token)
+    user_id = verify_token(access_token)
     if user_id:
         return user_id
     else:

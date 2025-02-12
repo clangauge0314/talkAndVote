@@ -25,7 +25,7 @@ class AuthServices:
     
     @staticmethod
     async def verify_email(db: AsyncSession, token: str):
-        user_id = await verify_token(token)
+        user_id = verify_token(token)
         db_user = await UserCrud.update(db, user_id, UserUpdate(is_verified=True))
         await db.flush()
         await db.commit()

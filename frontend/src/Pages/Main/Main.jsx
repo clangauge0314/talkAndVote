@@ -1,5 +1,6 @@
 import { React, useEffect, useState } from "react";
 import { useTopic } from "../../hooks/useTopic";
+import { useVote } from "../../hooks/useVote";
 import Swal from "sweetalert2";
 
 const voteColors = {
@@ -23,59 +24,48 @@ const voteColors = {
 
 const Main = () => {
   const { fetchTopics } = useTopic();
+  const { submitVote } = useVote();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const handleVote = (topicId, optionIndex) => {
-    setTopics((prevTopics) =>
-      prevTopics.map((topic) =>
-        topic.topic_id === topicId
-          ? {
-              ...topic,
-              has_voted: true,
-              selected_option: optionIndex,
-              vote_results: topic.vote_results.map((count, idx) =>
-                idx === optionIndex ? count + 1 : count
-              ),
-              total_vote: topic.total_vote + 1,
-            }
-          : topic
-      )
-    );
-    Swal.fire({
-      icon: "success",
-      title: "투표 완료!",
-      text: "투표에 참가해주셔서 감사합니다.",
-      confirmButtonColor: "#34D399",
-    });
+  const handleVote = async (topicId, optionIndex) => {
+    const success = await submitVote({ topic_id: topicId, vote_index: optionIndex });
+
+    if (success) {
+      const data = await fetchTopics();
+      if (data) {
+        setTopics(data);
+      }
+    }
   };
+
 
   useEffect(() => {
     const loadTopics = async () => {
       const data = await fetchTopics();
       if (data) {
-        const topicsWithRandomVotes = data.map(topic => {
-          const totalVotes = Math.floor(Math.random() * 1000) + 100; 
-          const voteResults = [];
-          let remainingVotes = totalVotes;
-          
-          for (let i = 0; i < topic.vote_options.length - 1; i++) {
-            const votes = Math.floor(Math.random() * remainingVotes);
-            voteResults.push(votes);
-            remainingVotes -= votes;
-          }
-          voteResults.push(remainingVotes);
+        // const topicsWithRandomVotes = data.map(topic => {
+        //   const totalVotes = Math.floor(Math.random() * 1000) + 100; 
+        //   const voteResults = [];
+        //   let remainingVotes = totalVotes;
 
-          return {
-            ...topic,
-            vote_results: voteResults,
-            total_vote: totalVotes,
-            has_voted: Math.random() > 0.5, 
-            selected_option: Math.floor(Math.random() * topic.vote_options.length) // 랜덤 선택 옵션
-          };
-        });
-        
-        setTopics(topicsWithRandomVotes);
+        //   for (let i = 0; i < topic.vote_options.length - 1; i++) {
+        //     const votes = Math.floor(Math.random() * remainingVotes);
+        //     voteResults.push(votes);
+        //     remainingVotes -= votes;
+        //   }
+        //   voteResults.push(remainingVotes);
+
+        //   return {
+        //     ...topic,
+        //     vote_results: voteResults,
+        //     total_vote: totalVotes,
+        //     has_voted: Math.random() > 0.5, 
+        //     selected_option: Math.floor(Math.random() * topic.vote_options.length)
+        //   };
+        // });
+
+        setTopics(data);
       }
       setLoading(false);
     };
@@ -127,9 +117,8 @@ const Main = () => {
               return (
                 <div
                   key={topic.topic_id}
-                  className={`border-2 border-emerald-300 rounded-lg p-4 hover:shadow-lg transition-all duration-200 flex flex-col h-full relative ${
-                    topic.has_voted ? 'bg-gray-300' : 'bg-white'
-                  }`}
+                  className={`border-2 border-emerald-300 rounded-lg p-4 hover:shadow-lg transition-all duration-200 flex flex-col h-full relative ${topic.has_voted ? 'bg-gray-300' : 'bg-white'
+                    }`}
                 >
                   {topic.has_voted && (
                     <div className="absolute inset-0 flex items-center justify-center bg-white/30 rounded-lg z-10 opacity-100 hover:opacity-0 transition-opacity duration-200">
@@ -138,7 +127,7 @@ const Main = () => {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-emerald-600 line-clamp-2">
                       {topic.title}
@@ -159,7 +148,7 @@ const Main = () => {
                         const previousPercentagesSum = topic.vote_results
                           .slice(0, index)
                           .reduce((acc, curr) => {
-                            return acc + (topic.total_vote === 0 
+                            return acc + (topic.total_vote === 0
                               ? 0
                               : (curr / topic.total_vote) * 100);
                           }, 0);
@@ -175,11 +164,11 @@ const Main = () => {
                               transition: "width 0.3s ease-in-out",
                             }}
                           >
-                            {percentage > 0 && (
+                            {/* {percentage > 0 && (
                               <span className="absolute top-0 left-1/2 -translate-x-1/2 text-xs text-white font-medium drop-shadow-md">
                                 {Math.round(percentage)}%
                               </span>
-                            )}
+                            )} */}
                           </div>
                         );
                       })}
@@ -189,22 +178,28 @@ const Main = () => {
                       {topic.vote_options.map((option, index) => {
                         const optionCount = topic.vote_options.length;
                         const colors = voteColors[optionCount];
-                        const percentage =
 
-                          topic.total_vote === 0
-                            ? 0
-                            : (topic.vote_results[index] / topic.total_vote) * 100;
+                        console.log(`Topic ${topic.topic_id} - Option ${index}:`, {
+                          has_voted: topic.has_voted,
+                          user_vote_index: topic.user_vote_index,  
+                          is_selected: topic.user_vote_index === index, 
+                        });
 
                         return (
                           <button
                             key={index}
                             className="w-full flex items-center justify-between p-2 rounded-lg transition-all duration-200"
-                            style={{ 
-                              backgroundColor: topic.has_voted 
-                                ? (topic.selected_option === index ? colors[index].bg : '#9CA3AF')
+                            style={{
+                              backgroundColor: topic.has_voted
+                                ? (topic.user_vote_index === index ? colors[index].bg : '#9CA3AF')  
                                 : colors[index].bg,
                             }}
-                            onClick={() => !topic.has_voted && handleVote(topic.topic_id, index)}
+                            onClick={() => {
+                              if (!topic.has_voted) {
+                                console.log(`User clicked on topic ${topic.topic_id}, option ${index}`);
+                                handleVote(topic.topic_id, index);
+                              }
+                            }}
                             disabled={topic.has_voted}
                             onMouseOver={(e) => {
                               if (!topic.has_voted) {
@@ -215,8 +210,8 @@ const Main = () => {
                               if (!topic.has_voted) {
                                 e.currentTarget.style.backgroundColor = colors[index].bg;
                               } else {
-                                e.currentTarget.style.backgroundColor = 
-                                  topic.selected_option === index ? colors[index].bg : '#9CA3AF';
+                                e.currentTarget.style.backgroundColor =
+                                  topic.user_vote_index === index ? colors[index].bg : '#9CA3AF';
                               }
                             }}
                           >
@@ -230,12 +225,15 @@ const Main = () => {
                                 {topic.vote_results[index]}표
                               </span>
                               <span className="text-sm font-medium text-white">
-                                {Math.round(percentage)}%
+                                {Math.round(
+                                  topic.total_vote === 0 ? 0 : (topic.vote_results[index] / topic.total_vote) * 100
+                                )}%
                               </span>
                             </div>
                           </button>
                         );
                       })}
+
                     </div>
 
                     <div className="mt-auto pt-4 flex justify-between items-center text-xs text-gray-400 border-t  border-gray-300">

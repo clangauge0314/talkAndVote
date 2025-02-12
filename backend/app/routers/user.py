@@ -43,7 +43,7 @@ async def create_user_route(user: UserSignUp, response: Response, db: AsyncSessi
     result = await UserService.signup(db=db, user=user)
     if result:
         access_token, refresh_token, html_content = result
-        await set_auth_cookies(
+        set_auth_cookies(
             response=response, access_token=access_token, refresh_token=refresh_token
         )
         await send_email(user.email, "Verify your email", html_content)

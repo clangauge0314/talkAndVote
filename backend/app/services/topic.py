@@ -22,6 +22,7 @@ class TopicService:
         user_vote_index = vote.vote_index if has_voted else None
         # 4. TopicResponse 스키마로 데이터 반환
         topic_response = TopicResponse(
+            user_id=topic.user_id,
             topic_id=topic.topic_id,
             title=topic.title,
             description=topic.description,
@@ -85,6 +86,7 @@ class TopicService:
                     vote_results[vote.vote_index] += 1
 
             topic_response = TopicResponse(
+                user_id=topic.user_id,
                 topic_id=topic.topic_id,
                 title=topic.title,
                 description=topic.description,

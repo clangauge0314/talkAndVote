@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
 from app.db.database import Base, async_engine, get_db
-from app.routers import user, auth, profile, topic, like, comment
+from app.routers import user, auth, profile, topic, like, comment, vote
 from app.core.jwt_handler import create_access_token, create_refresh_token, verify_token
 from app.db.crud.user import UserCrud
 
@@ -33,23 +33,21 @@ class TokenRefreshMiddleware(BaseHTTPMiddleware):
         
         # 액세스 토큰이 유효한 경우: 아무 작업 필요 없음
         if access_token:
-            user_id = await verify_token(access_token)
+            user_id = verify_token(access_token)
             if user_id:
                 return response
         
         # 액세스 토큰이 만료된 경우: 리프레시 토큰 검증
         if refresh_token:
-            user_id = await verify_token(refresh_token)
+            user_id = verify_token(refresh_token)
             if user_id:
                 # 새 액세스 토큰 및 리프레시 토큰 발급
-                new_access_token = await create_access_token(user_id)
-                new_refresh_token = await create_refresh_token(user_id)
-                
-                # DB에 리프레시 토큰 업데이트
-                async with get_db() as db:
-                    await UserCrud.update_refresh_token(db, user_id, new_refresh_token)
-                    await db.commit()
-                
+                new_access_token = create_access_token(user_id)
+                new_refresh_token = create_refresh_token(user_id)
+                db_gen = get_db()                   # 비동기 제너레이터 생성
+                db = await anext(db_gen)  
+                await UserCrud.update_refresh_token(db, user_id, new_refresh_token)
+                await db.commit()
                 # 새 토큰을 쿠키에 설정
                 response.set_cookie("access_token", new_access_token, httponly=True, samesite="Strict", secure=True)
                 response.set_cookie("refresh_token", new_refresh_token, httponly=True, samesite="Strict", secure=True)
@@ -62,13 +60,14 @@ origins = [
 ]
 
 app.add_middleware(
-    TokenRefreshMiddleware,
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(TokenRefreshMiddleware)
 
 # 라우터 추가
 app.include_router(user.router)
@@ -77,6 +76,7 @@ app.include_router(profile.router)
 app.include_router(topic.router)
 app.include_router(like.router)
 app.include_router(comment.router)
+app.include_router(vote.router)
 
 
 if __name__ == "__main__":
