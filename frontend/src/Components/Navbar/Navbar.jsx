@@ -115,18 +115,23 @@ function Navbar({ onLoginClick, onSignupClick }) {
         <>
           <Link
             to="/profile"
+            onClick={() => setIsOpen(false)}
             className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
           >
             프로필
           </Link>
           <Link
             to="/settings"
+            onClick={() => setIsOpen(false)}
             className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
           >
             설정
           </Link>
           <button
-            onClick={logout}
+            onClick={() => {
+              logout();
+              setIsOpen(false);
+            }}
             className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 text-left"
           >
             로그아웃
@@ -264,24 +269,28 @@ function Navbar({ onLoginClick, onSignupClick }) {
             <div className="pb-2 mb-2">
               <Link
                 to="/dashboard"
+                onClick={() => setIsOpen(false)}
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
                 대시보드
               </Link>
               <Link
                 to="/activity"
+                onClick={() => setIsOpen(false)}
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
                 활동내역
               </Link>
               <Link
                 to="/ranking"
+                onClick={() => setIsOpen(false)}
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
                 랭킹
               </Link>
               <Link
                 to="/create-topic"
+                onClick={() => setIsOpen(false)}
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
                 토픽 생성
@@ -306,6 +315,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
             {categories.map((category) => (
               <button
                 key={category}
+                onClick={() => setIsOpen(false)}
                 className="px-4 py-2 text-white hover:bg-emerald-600 rounded-md transition-all duration-500 text-sm font-medium"
               >
                 {category}

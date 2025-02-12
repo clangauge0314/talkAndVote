@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children }) => {
       alert("로그인이 필요한 서비스입니다. 로그인 후 진행해주세요.");
       return <Navigate to="/" replace />;
     }
-    return null; 
+    return null;
   }
 
   return children;
@@ -37,9 +37,27 @@ const Layout = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
 
+  const handleLoginClick = () => {
+    setIsSignupOpen(false);
+    setIsLoginOpen(true);
+  };
+
+  const handleSignupClick = () => {
+    setIsLoginOpen(false);
+    setIsSignupOpen(true);
+  };
+
+  const handleCloseModals = () => {
+    setIsLoginOpen(false);
+    setIsSignupOpen(false);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar onLoginClick={() => setIsLoginOpen(true)} onSignupClick={() => setIsSignupOpen(true)} />
+      <Navbar
+        onLoginClick={() => setIsLoginOpen(true)}
+        onSignupClick={() => setIsSignupOpen(true)}
+      />
       <main className="flex-grow container mx-auto px-4 py-8">
         <Routes>
           <Route path="/" element={<Main />} />
@@ -56,8 +74,16 @@ const Layout = () => {
         </Routes>
       </main>
       <Footer />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onSignupClick={() => setIsSignupOpen(true)} />
-      <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} onLoginClick={() => setIsLoginOpen(true)} />
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={handleCloseModals}
+        onSignupClick={handleSignupClick}
+      />
+      <SignupModal
+        isOpen={isSignupOpen}
+        onClose={handleCloseModals}
+        onLoginClick={handleLoginClick}
+      />
     </div>
   );
 };

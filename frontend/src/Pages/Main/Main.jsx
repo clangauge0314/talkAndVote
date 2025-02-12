@@ -1,30 +1,102 @@
 import { React, useEffect, useState } from "react";
 import { useTopic } from "../../hooks/useTopic";
+import Swal from "sweetalert2";
 
-const voteColors = ["blue", "yellow", "orange", "purple", "pink", "teal"];
+const voteColors = {
+  2: [
+    { bg: "#10B981", hover: "#059669" },
+    { bg: "#F43F5E", hover: "#E11D48" },
+  ],
+  3: [
+    { bg: "#10B981", hover: "#059669" },
+    { bg: "#F43F5E", hover: "#E11D48" },
+    { bg: "#3B82F6", hover: "#2563EB" },
+  ],
+
+  4: [
+    { bg: "#10B981", hover: "#059669" },
+    { bg: "#F43F5E", hover: "#E11D48" },
+    { bg: "#3B82F6", hover: "#2563EB" },
+    { bg: "#A855F7", hover: "#9333EA" },
+  ],
+};
 
 const Main = () => {
   const { fetchTopics } = useTopic();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleVote = (topicId, optionIndex) => {
+    setTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.topic_id === topicId
+          ? {
+              ...topic,
+              has_voted: true,
+              selected_option: optionIndex,
+              vote_results: topic.vote_results.map((count, idx) =>
+                idx === optionIndex ? count + 1 : count
+              ),
+              total_vote: topic.total_vote + 1,
+            }
+          : topic
+      )
+    );
+    Swal.fire({
+      icon: "success",
+      title: "투표 완료!",
+      text: "투표에 참가해주셔서 감사합니다.",
+      confirmButtonColor: "#34D399",
+    });
+  };
+
   useEffect(() => {
     const loadTopics = async () => {
       const data = await fetchTopics();
-      if (data) setTopics(data);
+      if (data) {
+        const topicsWithRandomVotes = data.map(topic => {
+          const totalVotes = Math.floor(Math.random() * 1000) + 100; 
+          const voteResults = [];
+          let remainingVotes = totalVotes;
+          
+          for (let i = 0; i < topic.vote_options.length - 1; i++) {
+            const votes = Math.floor(Math.random() * remainingVotes);
+            voteResults.push(votes);
+            remainingVotes -= votes;
+          }
+          voteResults.push(remainingVotes);
+
+          return {
+            ...topic,
+            vote_results: voteResults,
+            total_vote: totalVotes,
+            has_voted: Math.random() > 0.5, 
+            selected_option: Math.floor(Math.random() * topic.vote_options.length) // 랜덤 선택 옵션
+          };
+        });
+        
+        setTopics(topicsWithRandomVotes);
+      }
       setLoading(false);
     };
 
     loadTopics();
   }, []);
 
-  const popularTopics = ["웹개발", "AI/ML", "모바일앱", "데이터사이언스", "클라우드"];
+  const popularTopics = [
+    "웹개발",
+    "AI/ML",
+    "모바일앱",
+    "데이터사이언스",
+    "클라우드",
+  ];
 
   return (
     <div className="w-full px-4 py-4 bg-white">
       <div className="max-w-8xl mx-auto">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
           <div className="flex gap-3 flex-wrap">
+
             {popularTopics.map((topic, index) => (
               <button
                 key={index}
@@ -52,76 +124,149 @@ const Main = () => {
             <p className="text-center text-gray-500 col-span-4">로딩 중...</p>
           ) : topics.length > 0 ? (
             topics.map((topic) => {
-              const totalVotes = topic.total_vote || 1; 
               return (
                 <div
                   key={topic.topic_id}
-                  className={`border border-emerald-100 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-white flex flex-col h-[250px] ${
-                    topic.has_voted ? "opacity-80" : ""
+                  className={`border-2 border-emerald-300 rounded-lg p-4 hover:shadow-lg transition-all duration-200 flex flex-col h-full relative ${
+                    topic.has_voted ? 'bg-gray-300' : 'bg-white'
                   }`}
                 >
-                  <h3 className="text-base font-semibold mb-4 text-emerald-900 line-clamp-2 h-[48px]">
-                    {topic.title}
-                  </h3>
-
-                  <div className="flex gap-2 mb-2">
-                    {topic.vote_options.map((option, index) => {
-                      const votePercentage = totalVotes
-                        ? Math.round((topic.vote_results[index] / totalVotes) * 100)
-                        : 0;
-
-                      let buttonColor = "gray"; 
-                      if (topic.vote_options.length === 2) {
-                        buttonColor = index === 0 ? "emerald" : "red"; 
-                      } else {
-                        buttonColor = voteColors[index % voteColors.length]; 
-                      }
-
-                      return (
-                        <div key={index} className="w-full relative">
-                          <button
-                            className={`w-full px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                              topic.has_voted
-                                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                                : `bg-${buttonColor}-500 text-white hover:bg-${buttonColor}-600`
-                            }`}
-                            disabled={topic.has_voted}
-                          >
-                            {option}
-                          </button>
-                          <div className="w-full h-2 bg-gray-200 rounded-full mt-2 relative overflow-hidden">
-                            <div
-                              className={`absolute h-full bg-${buttonColor}-500 rounded-full`}
-                              style={{ width: `${votePercentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs text-gray-500 block mt-1">
-                            {votePercentage}% ({topic.vote_results[index]}표)
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-auto flex justify-between items-center text-xs text-gray-500">
-                    <span>{new Date(topic.created_at).toLocaleDateString()}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1">
-                        <i className="fas fa-heart"></i>
-                        {topic.like_count}
+                  {topic.has_voted && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/30 rounded-lg z-10 opacity-100 hover:opacity-0 transition-opacity duration-200">
+                      <span className="bg-emerald-500 text-white text-xl font-bold px-6 py-4 rounded-lg shadow-md">
+                        이미 투표한 토픽입니다
                       </span>
-                      {topic.has_voted && (
-                        <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded">
-                          투표 완료
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-col h-full">
+                    <h3 className="text-xl font-semibold mb-2 text-emerald-600 line-clamp-2">
+                      {topic.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                      {topic.description}
+                    </p>
+
+                    <div className="w-full h-5 bg-gray-300 rounded-full mb-4 relative overflow-hidden">
+                      {topic.vote_options.map((_, index) => {
+                        const optionCount = topic.vote_options.length;
+                        const colors = voteColors[optionCount];
+                        const percentage =
+                          topic.total_vote === 0
+                            ? 0
+                            : (topic.vote_results[index] / topic.total_vote) * 100;
+
+                        const previousPercentagesSum = topic.vote_results
+                          .slice(0, index)
+                          .reduce((acc, curr) => {
+                            return acc + (topic.total_vote === 0 
+                              ? 0
+                              : (curr / topic.total_vote) * 100);
+                          }, 0);
+
+                        return (
+                          <div
+                            key={index}
+                            className="absolute h-full"
+                            style={{
+                              backgroundColor: colors[index].bg,
+                              left: `${previousPercentagesSum}%`,
+                              width: `${percentage}%`,
+                              transition: "width 0.3s ease-in-out",
+                            }}
+                          >
+                            {percentage > 0 && (
+                              <span className="absolute top-0 left-1/2 -translate-x-1/2 text-xs text-white font-medium drop-shadow-md">
+                                {Math.round(percentage)}%
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className={`space-y-2 ${topic.has_voted ? 'bg-gray-300' : 'bg-gray-100'} p-3 rounded-lg mb-3`}>
+                      {topic.vote_options.map((option, index) => {
+                        const optionCount = topic.vote_options.length;
+                        const colors = voteColors[optionCount];
+                        const percentage =
+
+                          topic.total_vote === 0
+                            ? 0
+                            : (topic.vote_results[index] / topic.total_vote) * 100;
+
+                        return (
+                          <button
+                            key={index}
+                            className="w-full flex items-center justify-between p-2 rounded-lg transition-all duration-200"
+                            style={{ 
+                              backgroundColor: topic.has_voted 
+                                ? (topic.selected_option === index ? colors[index].bg : '#9CA3AF')
+                                : colors[index].bg,
+                            }}
+                            onClick={() => !topic.has_voted && handleVote(topic.topic_id, index)}
+                            disabled={topic.has_voted}
+                            onMouseOver={(e) => {
+                              if (!topic.has_voted) {
+                                e.currentTarget.style.backgroundColor = colors[index].hover;
+                              }
+                            }}
+                            onMouseOut={(e) => {
+                              if (!topic.has_voted) {
+                                e.currentTarget.style.backgroundColor = colors[index].bg;
+                              } else {
+                                e.currentTarget.style.backgroundColor = 
+                                  topic.selected_option === index ? colors[index].bg : '#9CA3AF';
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                              <span className="text-sm ml-2 text-white">
+                                {option}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-white">
+                                {topic.vote_results[index]}표
+                              </span>
+                              <span className="text-sm font-medium text-white">
+                                {Math.round(percentage)}%
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-auto pt-4 flex justify-between items-center text-xs text-gray-400 border-t  border-gray-300">
+                      <span>
+                        {new Date(topic.created_at).toLocaleString("ko-KR", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 whitespace-nowrap">
+                          <i className="fas fa-heart"></i>
+                          {topic.like_count}
                         </span>
-                      )}
+                        <span className="px-1.5 py-0.5 bg-whit rounded-full whitespace-nowrap">
+                          총 {topic.total_vote}표
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               );
             })
           ) : (
-            <p className="text-center text-gray-500 col-span-4">등록된 토픽이 없습니다.</p>
+            <p className="text-center text-gray-500 col-span-4">
+              등록된 토픽이 없습니다.
+            </p>
           )}
         </div>
       </div>
