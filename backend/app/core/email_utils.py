@@ -6,11 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from jinja2 import Template
 from app.core.config import Config  # 환경 변수 사용
 
-from aiosmtplib import send
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from app.core.config import Config  # 환경 변수 사용
-
 async def send_email(to_email: str, subject: str, html_content: str):
     message = MIMEMultipart()
     message["From"] = f"{Config.EMAIL_FROM_NAME} <{Config.EMAIL_FROM}>"

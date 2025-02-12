@@ -2,6 +2,8 @@
 
 from fastapi import Request, Response, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.crud.user import UserCrud
+from app.db.database import get_db
 from app.core.config import Config
 from app.core.jwt_handler import (
     create_access_token,
@@ -13,8 +15,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-async def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
+def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -33,31 +34,14 @@ async def set_auth_cookies(response: Response, access_token: str, refresh_token:
     )
 
 
-async def get_user_id(db: AsyncSession, request: Request, response: Response) -> int:
+async def get_user_id(request: Request) -> int:
     access_token = request.cookies.get("access_token")
-    refresh_token = request.cookies.get("refresh_token")
 
-    logger.warning(refresh_token)
-    if not refresh_token:
-        logger.warning("Missing refresh token")
-        raise HTTPException(status_code=401, detail="User Unauthorized")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Access token missing")
 
-    if access_token:
-        user_id = await verify_token(access_token)
-        if user_id:
-            return user_id
-
-    user_id = await verify_token(refresh_token)
-    if user_id is None:
-        logger.warning("Invalid refresh token")
-        raise HTTPException(status_code=401, detail="User1 Unauthorized")
-
-    # 새로운 access token 및 refresh token 생성
-    new_access_token = create_access_token(user_id)
-    new_refresh_token = create_refresh_token(user_id)
-    await set_auth_cookies(
-        response=response,
-        access_token=new_access_token,
-        refresh_token=new_refresh_token,
-    )
-    return user_id
+    user_id = await verify_token(access_token)
+    if user_id:
+        return user_id
+    else:
+        raise HTTPException(status_code=401, detail="Invalid or expired access token")

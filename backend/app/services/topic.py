@@ -1,7 +1,6 @@
-from app.db.crud.like import LikeCrud
-from app.db.crud.topic import TopicCrud
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.crud.vote import VoteCrud
+from app.db.crud import VoteCrud, TopicCrud, LikeCrud
 from app.db.schemas.topic import TopicResponse
 from sqlalchemy import select, desc, func
 from app.db.models import Topic, Vote, TopicLike

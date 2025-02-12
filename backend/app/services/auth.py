@@ -1,12 +1,12 @@
 # app/services/auth.py
 
 from app.core.jwt_handler import create_access_token, verify_token
-from app.db.crud.user import UserCrud
+from app.db.crud import UserCrud
 from app.db.schemas.users import UserUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.email_utils import generate_verification_email
-import logging
 from app.core.utils import to_dict
+import logging
 
 logger = logging.getLogger(__name__)
 class AuthServices:

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.core.auth import get_user_id
-from app.db.crud.topic import TopicCrud
+from app.db.crud import TopicCrud
 from app.db.schemas.topic import TopicCreate, TopicResponse, TopicSchemas
-from app.services.topic import TopicService
+from app.services import TopicService
 
 router = APIRouter() 
 
@@ -25,8 +25,7 @@ async def get_topics_route(request: Request, response: Response, db: AsyncSessio
     return topic_response
 
 @router.post("/topic", response_model=TopicSchemas)
-async def create_topic_route(topic: TopicCreate, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
-    user_id = await get_user_id(db,request,response)
+async def create_topic_route(topic: TopicCreate, user_id: int = Depends(get_user_id), db: AsyncSession = Depends(get_db)):
     db_topic = await TopicCrud.create(db=db, topic_data=topic)
     await db.commit()
     await db.refresh(db_topic)

@@ -2,7 +2,7 @@
 
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.crud.user import UserCrud
+from app.db.crud import UserCrud
 from app.db.schemas.users import UserCreate, UserLogin, UserSignUp
 from app.core.jwt_handler import (
     create_access_token,
@@ -10,9 +10,9 @@ from app.core.jwt_handler import (
     get_password_hash,
     verify_password,
 )
-import logging
 from app.core.utils import to_dict
 from app.core.email_utils import generate_verification_email
+import logging
 
 logger = logging.getLogger(__name__)
 

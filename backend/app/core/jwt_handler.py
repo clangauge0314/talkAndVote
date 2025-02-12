@@ -35,7 +35,7 @@ def create_access_token(uid: int):
 def create_refresh_token(uid: int):
     return create_token(uid=uid, jti=str(uuid.uuid4()), expires_delta=Config.REFRESH_TOKEN_EXPIRE)
 
-async def decode_token(token):
+def decode_token(token):
     try:
         payload = jwt.decode(token, Config.SECRET_KEY, algorithms=[Config.JWT_ALGORITHM])
         return payload
@@ -45,8 +45,8 @@ async def decode_token(token):
         return None
 
 
-async def verify_token(token):
-    payload = await decode_token(token=token)
+def verify_token(token):
+    payload = decode_token(token=token)
     if payload is None:
         return None
     user_id = payload["uid"]

@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class CommentBase(BaseModel):
+    user_id: int
     topic_id: int
     content: str
 
@@ -10,7 +11,6 @@ class CommentCreate(CommentBase):
 
 class CommentResponse(CommentBase):
     comment_id: int
-    user_id: int
     created_at: datetime
 
     class Config:

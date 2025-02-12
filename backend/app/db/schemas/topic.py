@@ -14,11 +14,13 @@ class TopicCreate(TopicBase):
 class TopicSchemas(TopicBase):
     topic_id: int
     created_at: datetime
+    user_id: int
 
     class Config:
         from_attributes = True
         
 class TopicResponse(TopicSchemas):
+    user_id: int
     has_voted: bool = False
     user_vote_index: int | None = None
     like_count: int = 0

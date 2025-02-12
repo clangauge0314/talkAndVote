@@ -11,8 +11,10 @@ class Topic(Base):
     description = Column(String(500), nullable=True)
     vote_options = Column(JSON, nullable=False) 
     category = Column(String(255), nullable=False, default="기타")
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     
+    user = relationship("User", back_populates="topics")
     votes = relationship("Vote", back_populates="topic", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="topic", cascade="all, delete-orphan")
     likes = relationship("TopicLike", back_populates="topic", cascade="all, delete-orphan")
