@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from "../../../hooks/useAuth";
 
 const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
   const [formData, setFormData] = useState({
@@ -41,21 +41,21 @@ const SignupModal = ({ isOpen, onClose, onLoginClick }) => {
       return;
     }
 
-    const success = await signup(
-      { email, username, password },
-      () => {
-        onClose();
+    try {
+      const success = await signup({ email, username, password });
+
+      if (success) {
+        setFormData({
+          email: "",
+          username: "",
+          password: "",
+          confirmPassword: "",
+        });
+
         onLoginClick();
       }
-    );
-
-    if (success) {
-      setFormData({
-        email: "",
-        username: "",
-        password: "",
-        confirmPassword: "",
-      });
+    } catch (error) {
+      console.error("Signup error:", error);
     }
   };
 

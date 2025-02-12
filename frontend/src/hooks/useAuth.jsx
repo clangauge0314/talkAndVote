@@ -55,8 +55,10 @@ export const AuthProvider = ({ children }) => {
           title: "회원가입 성공!",
           text: "이메일 인증을 완료하여 계정을 활성화해주세요.",
           confirmButtonColor: "#34D399",
-        })
+        });
+        return true;
       }
+      return false;
     } catch (error) {
       setError(error.response?.data.detail || "회원가입에 실패했습니다.");
       return false;

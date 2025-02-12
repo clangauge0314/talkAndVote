@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTopic } from "../../../hooks/useTopic";
+import Swal from 'sweetalert2';
 
 const CreateTopic = () => {
   const { addTopic } = useTopic();
@@ -34,6 +35,15 @@ const CreateTopic = () => {
   };
 
   const addVoteOption = () => {
+    if (formData.vote_options.length >= 4) {
+      Swal.fire({
+        icon: "warning",
+        title: "투표 옵션 제한",
+        text: "투표 옵션은 최대 4개까지만 추가할 수 있습니다.",
+        confirmButtonColor: "#EF4444",
+      });
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       vote_options: [...prev.vote_options, ""],
@@ -48,14 +58,28 @@ const CreateTopic = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const validVoteOptions = formData.vote_options.filter(option => option.trim() !== "");
+    if (validVoteOptions.length < 2) {
+        Swal.fire({
+            icon: "warning",
+            title: "투표 옵션 필요",
+            text: "최소 2개의 투표 옵션이 필요합니다.",
+            confirmButtonColor: "#EF4444",
+        });
+        return;
+    }
+
     try {
-        const result = await addTopic(formData); 
+        const result = await addTopic({
+            ...formData,
+            vote_options: validVoteOptions
+        }); 
 
         if (result) { 
             setFormData({
                 title: "",
                 description: "",
-                voteOptions: [""],
+                vote_options: [""],
                 category: "",
             });
 
@@ -67,6 +91,7 @@ const CreateTopic = () => {
             });
         }
     } catch (error) {
+        console.error("Topic creation error:", error);
         Swal.fire({
             icon: "error",
             title: "오류 발생",
@@ -78,7 +103,7 @@ const CreateTopic = () => {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="flex items-center justify-center px-4">
       <div className="max-w-3xl w-full bg-white p-8 rounded-2xl shadow-xl">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">새로운 토픽 생성</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -136,13 +161,15 @@ const CreateTopic = () => {
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              onClick={addVoteOption}
-              className="w-full py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-200 mt-2"
-            >
-              옵션 추가
-            </button>
+            {formData.vote_options.length < 4 && (
+              <button
+                type="button"
+                onClick={addVoteOption}
+                className="w-full py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-200 mt-2"
+              >
+                옵션 추가
+              </button>
+            )}
           </div>
 
           <div>
