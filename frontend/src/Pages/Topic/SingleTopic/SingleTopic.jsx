@@ -12,6 +12,7 @@ import {
 import { Heart, CheckCircle, Calendar } from "lucide-react";
 import classNames from "classnames";
 import { useTopic } from "../../../hooks/useTopic";
+import { useLike } from "../../../hooks/useLike";
 
 const timeFrames = ["1H", "6H", "1D", "1W", "1M", "ALL"];
 
@@ -36,6 +37,7 @@ const voteColors = {
 const SingleTopic = () => {
   const { id } = useParams();
   const { getTopicById } = useTopic();
+  const { toggleTopicLike } = useLike();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedTimeFrame, setSelectedTimeFrame] = useState(
     searchParams.get("time_range") || "ALL"
@@ -56,12 +58,21 @@ const SingleTopic = () => {
         setHasVoted(topicData.has_voted);
         setUserVoteIndex(topicData.user_vote_index);
         setLikes(topicData.like_count);
+        setLiked(topicData.is_liked);
       }
       setLoading(false);
     };
 
     fetchTopic();
   }, [id, selectedTimeFrame]);
+
+  const handleLikeClick = async () => {
+    const result = await toggleTopicLike(id);
+    if (result !== null) {
+      setLiked(!liked);
+      setLikes(liked ? likes - 1 : likes + 1);
+    }
+  };
 
   if (loading) {
     return <p className="text-center text-gray-500">로딩 중...</p>;
@@ -81,16 +92,18 @@ const SingleTopic = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-emerald-500">{title}</h1>
         <button
-          onClick={() => {
-            setLiked(!liked);
-            setLikes(liked ? likes - 1 : likes + 1);
-          }}
+          onClick={handleLikeClick}
           className={classNames(
             "flex items-center space-x-2 text-lg font-semibold transition-all",
-            liked ? "text-red-500" : "text-gray-500 hover:text-red-500"
+            liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
           )}
         >
-          <Heart className="w-7 h-7" />
+          <Heart 
+            className={classNames(
+              "w-7 h-7",
+              liked ? "fill-emerald-500" : "fill-none"
+            )} 
+          />
           <span>{likes}</span>
         </button>
       </div>
@@ -139,7 +152,7 @@ const SingleTopic = () => {
         ))}
       </div>
 
-      <div className={`space-y-4 my-6 ${hasVoted ? "bg-gray-300 p-3 rounded-lg" : ""}`}>
+      <div className={`space-y-4 my-6 ${hasVoted ? "bg-gray-100 p-3 rounded-lg" : ""}`}>
         {vote_options.map((option, index) => (
           <button
             key={index}
@@ -149,17 +162,38 @@ const SingleTopic = () => {
               }
             }}
             className={classNames(
-              "w-full py-4 px-6 flex items-center justify-between rounded-lg text-lg font-medium border-2 transition-all duration-300",
+              "w-full py-4 px-6 flex items-center justify-between rounded-lg text-lg font-medium transition-all duration-300",
               hasVoted
                 ? userVoteIndex === index
-                  ? "bg-emerald-500 text-white border-emerald-500 shadow-md"
-                  : "bg-gray-400 text-gray-200 border-gray-400 cursor-not-allowed"
-                : "border-gray-300 hover:border-emerald-500"
+                  ? "text-white shadow-md"
+                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                : `border-2 hover:border-[${colors[index].bg}]`
             )}
             disabled={hasVoted}
+            style={{
+              backgroundColor: hasVoted
+                ? userVoteIndex === index
+                  ? colors[index].bg
+                  : "#9CA3AF"
+                : "white",
+              borderColor: hasVoted ? "transparent" : colors[index].bg,
+            }}
           >
-            {option}
-            {hasVoted && userVoteIndex === index && <CheckCircle className="w-5 h-5" />}
+            <span>{option}</span>
+            <div className="flex items-center gap-4">
+              <span className={hasVoted ? "text-white" : "text-gray-600"}>
+                {vote_results[index]}표
+              </span>
+              <span className={hasVoted ? "text-white" : "text-gray-600"}>
+                {total_vote > 0
+                  ? Math.round((vote_results[index] / total_vote) * 100)
+                  : 0}
+                %
+              </span>
+              {hasVoted && userVoteIndex === index && (
+                <CheckCircle className="w-5 h-5" />
+              )}
+            </div>
           </button>
         ))}
       </div>

@@ -87,7 +87,6 @@ const Main = () => {
       <div className="max-w-8xl mx-auto">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
           <div className="flex gap-3 flex-wrap">
-
             {popularTopics.map((topic, index) => (
               <button
                 key={index}
@@ -197,7 +196,8 @@ const Main = () => {
                                   ? (topic.user_vote_index === index ? colors[index].bg : '#9CA3AF')
                                   : colors[index].bg,
                               }}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
                                 if (!topic.has_voted) {
                                   console.log(`User clicked on topic ${topic.topic_id}, option ${index}`);
                                   handleVote(topic.topic_id, index);
