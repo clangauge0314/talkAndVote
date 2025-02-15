@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useAuth, AuthProvider } from "./hooks/useAuth";
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-router-dom";
+import { useState } from "react";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
 
 import Navbar from "./Components/Navbar/Navbar";
 import Footer from "./Components/Footer/Footer";
@@ -11,25 +11,15 @@ import Main from "./Pages/Main/Main";
 import Profile from "./Pages/Profile/Profile";
 import UserProfile from "./Pages/Profile/UserProfile";
 import CreateTopic from "./Pages/Topic/CreateTopic/CreateTopic";
+import SingleTopic from "./Pages/Topic/SingleTopic/SingleTopic";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const [showAlert, setShowAlert] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setShowAlert(true);
-    }
-  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
-    if (showAlert) {
-      alert("로그인이 필요한 서비스입니다. 로그인 후 진행해주세요.");
-      return <Navigate to="/" replace />;
-    }
-    return null;
+    alert("로그인이 필요한 서비스입니다. 로그인 후 진행해주세요.");
+    return <Navigate to="/" replace />;
   }
-
   return children;
 };
 
@@ -54,48 +44,44 @@ const Layout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar
-        onLoginClick={() => setIsLoginOpen(true)}
-        onSignupClick={() => setIsSignupOpen(true)}
-      />
+      <Navbar onLoginClick={handleLoginClick} onSignupClick={handleSignupClick} />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <Routes>
-          <Route path="/" element={<Main />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/:username" element={<UserProfile />} />
-          <Route
-            path="/create-topic"
-            element={
-              <ProtectedRoute>
-                <CreateTopic />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Outlet /> 
       </main>
       <Footer />
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={handleCloseModals}
-        onSignupClick={handleSignupClick}
-      />
-      <SignupModal
-        isOpen={isSignupOpen}
-        onClose={handleCloseModals}
-        onLoginClick={handleLoginClick}
-      />
+      <LoginModal isOpen={isLoginOpen} onClose={handleCloseModals} onSignupClick={handleSignupClick} />
+      <SignupModal isOpen={isSignupOpen} onClose={handleCloseModals} onLoginClick={handleLoginClick} />
     </div>
   );
 };
 
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: (
+      <AuthProvider> 
         <Layout />
       </AuthProvider>
-    </BrowserRouter>
-  );
+    ),
+    children: [
+      { index: true, element: <Main /> }, 
+      { path: "profile", element: <Profile /> },
+      { path: "profile/:username", element: <UserProfile /> },
+      {
+        path: "create-topic",
+        element: (
+          <ProtectedRoute>
+            <CreateTopic />
+          </ProtectedRoute>
+        ),
+      },
+      { path: "topic/:id", element: <SingleTopic /> },
+    ],
+  },
+]);
+
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;

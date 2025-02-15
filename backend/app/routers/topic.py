@@ -30,3 +30,7 @@ async def create_topic_route(topic: TopicCreate, user_id: int = Depends(get_user
     await db.commit()
     await db.refresh(db_topic)
     return db_topic
+
+@router.get("/topic/{topic_id}", response_model=TopicResponse)
+async def get_topic(topic_id: int, db: AsyncSession = Depends(get_db)):
+    return await TopicService.get_topic(db, topic_id)

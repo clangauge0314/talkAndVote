@@ -34,3 +34,4 @@ class TopicCrud:
             await db.delete(topic)
             await db.commit()
         return topic
+    

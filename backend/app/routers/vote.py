@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.core.auth import get_user_id
-from app.db.crud.vote import VoteCrud
+from app.db.crud import VoteCrud
 from app.db.schemas.vote import VoteCreate, VoteResponse
+from app.services.vote import VoteService
 
 router = APIRouter(prefix="/vote", tags=["Vote"])
 
@@ -27,9 +28,10 @@ async def create_vote(
 @router.get("/topic/{topic_id}", response_model=list[VoteResponse])
 async def get_votes_by_topic(
     topic_id: int,
+    time_range: str | None = Query(None, enum=["1h", "6h", "1d", "1w", "1m"]),  # ✅ 선택적 필터링
     db: AsyncSession = Depends(get_db)
 ):
-    votes = await VoteCrud.get_votes_by_topic(db, topic_id)
+    votes = await VoteCrud.get_votes_by_topic(db, topic_id, time_range)
     return votes
 
 # ✅ 3. 특정 유저의 투표 내역 조회 (GET /vote/user/{user_id})

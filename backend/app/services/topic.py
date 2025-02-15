@@ -110,3 +110,15 @@ class TopicService:
             topic_responses.append(topic_response)
 
         return topic_responses
+    
+    
+    @staticmethod
+    async def get_topic(db: AsyncSession, topic_id: int):
+        """ 특정 주제(topic_id) 가져오기 """
+        result = await db.execute(select(Topic).where(Topic.topic_id == topic_id))
+        topic = result.scalar_one_or_none()
+
+        if not topic:
+            raise ValueError("Topic not found")
+
+        return topic

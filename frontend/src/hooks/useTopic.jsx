@@ -47,6 +47,37 @@ export const useTopic = () => {
         }
     };
 
+    const getTopicById = async (topicId) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/topic/${topicId}`, { withCredentials: true });
+
+            if (response.status === 200 && response.data) {
+                console.log(response.data)
+                return response.data;
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "예기치 않은 응답",
+                    text: `서버에서 예상하지 못한 응답을 반환했습니다. (${response.status})`,
+                    confirmButtonColor: "#EF4444",
+                });
+                return null;
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "오류 발생",
+                text: error.response?.data?.error || "토픽을 불러올 수 없습니다.",
+                confirmButtonColor: "#EF4444",
+            });
+
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const addTopic = async (topicData) => {
         setLoading(true);
         try {
@@ -86,6 +117,7 @@ export const useTopic = () => {
     return {
         loading,
         addTopic,
-        fetchTopics
+        fetchTopics,
+        getTopicById
     };
 };
