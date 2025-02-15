@@ -32,5 +32,14 @@ async def create_topic_route(topic: TopicCreate, user_id: int = Depends(get_user
     return db_topic
 
 @router.get("/topic/{topic_id}", response_model=TopicResponse)
-async def get_topic(topic_id: int, db: AsyncSession = Depends(get_db)):
-    return await TopicService.get_topic(db, topic_id)
+async def get_topic(topic_id: int, request: Request,db: AsyncSession = Depends(get_db)):
+    try:
+        # ✅ 로그인한 유저: user_id 가져오기
+        user_id = await get_user_id(request)
+
+        # 로그인한 유저: 좋아요 여부, 투표 여부 포함해서 주제 반환
+        topic = await TopicService.get_topic(db, topic_id, user_id)
+    except HTTPException:
+        # 🚫 로그인하지 않은 유저: 기본 주제 정보만 반환
+        topic = await TopicService.get_topic(db, topic_id, None)
+    return topic

@@ -20,7 +20,7 @@ class Config:
     TMP_DB = f"{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     DATABASE_URL = f"mysql+asyncmy://{TMP_DB}"  
     SYNC_DATABASE_URL = f"mysql+pymysql://{TMP_DB}"  
-    
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
     
 
 

@@ -113,12 +113,43 @@ class TopicService:
     
     
     @staticmethod
-    async def get_topic(db: AsyncSession, topic_id: int):
-        """ 특정 주제(topic_id) 가져오기 """
-        result = await db.execute(select(Topic).where(Topic.topic_id == topic_id))
-        topic = result.scalar_one_or_none()
+    async def get_topic_to_response(db: AsyncSession, topic: Topic, user_id: int | None = None):
+        like_count = await LikeCrud.get_topic_like_count(db, topic.topic_id)
+        votes = await VoteCrud.get_votes_by_topic(db, topic.topic_id)
+        vote_results = [0] * len(topic.vote_options)  # 투표 옵션 수만큼 0으로 초기화
+        for vote in votes:
+            if 0 <= vote.vote_index < len(vote_results):
+                vote_results[vote.vote_index] += 1
 
-        if not topic:
+        topic_response = TopicResponse(
+            user_id=topic.user_id,
+            topic_id=topic.topic_id,
+            title=topic.title,
+            description=topic.description,
+            vote_options=topic.vote_options,
+            created_at=topic.created_at,
+            vote_results= vote_results,
+            like_count=like_count,
+            total_vote=len(votes)
+        )
+        
+        if user_id is not None:
+            has_liked = await LikeCrud.is_topic_liked_by_user(db, topic.topic_id, user_id)
+            vote = await VoteCrud.get_vote_by_topic_and_user(db, topic.topic_id, user_id)
+            has_voted = vote is not None
+            user_vote_index = vote.vote_index if vote else None
+            
+            topic_response.has_voted = has_voted
+            topic_response.user_vote_index = user_vote_index
+            topic_response.has_liked = has_liked
+        return topic_response
+    
+    @staticmethod
+    async def get_topic(db: AsyncSession, topic_id: int, user_id:int | None):
+        """ 특정 주제(topic_id) 가져오기 """
+        result = await TopicCrud.get(db=db, topic_id=topic_id)
+    
+        if not result:
             raise ValueError("Topic not found")
 
-        return topic
+        return await TopicService.get_topic_to_response(db,result, user_id)

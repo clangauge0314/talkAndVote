@@ -4,7 +4,7 @@ from app.db.database import get_db
 from app.core.auth import get_user_id
 from app.db.crud import VoteCrud
 from app.db.schemas.vote import VoteCreate, VoteResponse
-from app.services.vote import VoteService
+from app.services import VoteService
 
 router = APIRouter(prefix="/vote", tags=["Vote"])
 
