@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTopic } from "../../../hooks/useTopic";
 import Swal from 'sweetalert2';
 
 const CreateTopic = () => {
   const { addTopic } = useTopic();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -59,6 +61,18 @@ const CreateTopic = () => {
     e.preventDefault();
 
     const validVoteOptions = formData.vote_options.filter(option => option.trim() !== "");
+    
+    const uniqueOptions = new Set(validVoteOptions);
+    if (uniqueOptions.size !== validVoteOptions.length) {
+      Swal.fire({
+        icon: "warning",
+        title: "중복된 투표 옵션",
+        text: "중복된 투표 옵션이 있습니다. 서로 다른 옵션을 입력해주세요.",
+        confirmButtonColor: "#EF4444",
+      });
+      return;
+    }
+
     if (validVoteOptions.length < 2) {
         Swal.fire({
             icon: "warning",
@@ -89,6 +103,8 @@ const CreateTopic = () => {
                 text: "새로운 토픽이 추가되었습니다.",
                 confirmButtonColor: "#34D399",
             });
+
+            navigate("/");
         }
     } catch (error) {
         console.error("Topic creation error:", error);

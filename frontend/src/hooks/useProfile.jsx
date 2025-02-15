@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export const useProfile = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { setUser, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthError = async (error) => {

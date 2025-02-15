@@ -1,20 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
 
 export const useVote = () => {
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
-
-    const handleAuthError = async (error) => {
-        if (error.response?.status === 401) {
-            await logout();
-            navigate('/login');
-            return true;
-        }
-        return false;
-    };
 
     const submitVote = async ({ topic_id, vote_index }) => {
         setLoading(true);
@@ -44,6 +33,16 @@ export const useVote = () => {
                 return false;
             }
         } catch (error) {
+            if (error.response?.status === 401) {
+                Swal.fire({
+                    icon: "error",
+                    title: "로그인 필요",
+                    text: "로그인 후 투표를 진행해주세요.",
+                    confirmButtonColor: "#EF4444",
+                });
+                
+                return false;
+            }
             Swal.fire({
                 icon: "error",
                 title: "오류 발생",
