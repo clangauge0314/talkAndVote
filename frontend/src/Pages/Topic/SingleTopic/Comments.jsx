@@ -3,6 +3,9 @@ import { Heart, MessageCircle, X, Send, Trash2 } from "lucide-react";
 import classNames from "classnames";
 import { useLike } from "../../../hooks/useLike";
 import { useReply } from "../../../hooks/useReply";
+import { useAuth } from "../../../hooks/useAuth";
+import Swal from "sweetalert2";
+import { useComment } from "../../../hooks/useComment";
 
 const PaginationControls = ({ currentPage, totalPages, onPageChange }) => (
   <div className="flex justify-center gap-2 mt-4">
@@ -72,13 +75,31 @@ const ReplyForm = ({ onSubmit, onCancel }) => {
   );
 };
 
-const Reply = ({ reply, currentUserId, onDelete, refreshComments }) => {
+const Reply = ({ reply, onDelete, refreshComments }) => {
   const { toggleReplyLike } = useLike();
+  const { user } = useAuth();
 
   const handleLike = async () => {
     const result = await toggleReplyLike(reply.reply_id);
-    if (result !== null) {
+    if (result !== undefined) {
       refreshComments();
+    }
+  };
+
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: '대댓글을 삭제하시겠습니까?',
+      text: "삭제된 대댓글은 복구할 수 없습니다.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#9CA3AF',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소'
+    });
+
+    if (result.isConfirmed) {
+      onDelete(reply.reply_id);
     }
   };
 
@@ -131,10 +152,11 @@ const Reply = ({ reply, currentUserId, onDelete, refreshComments }) => {
             />
             <span className="text-sm font-medium">{reply.like_count}</span>
           </button>
-          {currentUserId === reply.user_id && (
+          {user && user.user_id === reply.user_id && (
             <button
-              onClick={() => onDelete(reply.reply_id)}
+              onClick={handleDelete}
               className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+              title="대댓글 삭제"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -159,6 +181,8 @@ const Comments = ({
   const [replyingTo, setReplyingTo] = useState(null);
   const { toggleCommentLike } = useLike();
   const { createReply, deleteReply } = useReply();
+  const { deleteComment } = useComment();
+  const { user } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -190,9 +214,31 @@ const Comments = ({
     }
   };
 
+  const handleCommentDelete = async (commentId) => {
+    const result = await Swal.fire({
+      title: '댓글을 삭제하시겠습니까?',
+      text: "삭제된 댓글은 복구할 수 없습니다.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#9CA3AF',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소'
+    });
+
+    if (result.isConfirmed) {
+      const success = await deleteComment(commentId);
+      if (success) {
+        refreshComments();
+      }
+    }
+  };
+
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">댓글</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        댓글 <span className="text-emerald-500">({comments.length})</span>
+      </h2>
 
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
@@ -276,6 +322,15 @@ const Comments = ({
                     <MessageCircle className="w-5 h-5" />
                     <span className="text-sm font-medium">답글</span>
                   </button>
+                  {user && user.user_id === comment.user_id && (
+                    <button
+                      onClick={() => handleCommentDelete(comment.comment_id)}
+                      className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:text-red-500"
+                      title="댓글 삭제"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
               </div>
               <p className="text-gray-700 whitespace-pre-wrap">

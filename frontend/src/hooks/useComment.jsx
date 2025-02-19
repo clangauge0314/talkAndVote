@@ -95,9 +95,50 @@ export const useComment = () => {
         }
     };
 
+    const deleteComment = async (commentId) => {
+        setLoading(true);
+        try {
+            const response = await axios.delete(
+                `${import.meta.env.VITE_API_URL}/comment/${commentId}`,
+                { withCredentials: true }
+            );
+
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "댓글 삭제 완료",
+                    text: "댓글이 성공적으로 삭제되었습니다.",
+                    confirmButtonColor: "#34D399",
+                });
+                return true;
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "예기치 않은 응답",
+                    text: `서버에서 예상하지 못한 응답을 반환했습니다. (${response.status})`,
+                    confirmButtonColor: "#EF4444",
+                });
+                return false;
+            }
+        } catch (error) {
+            if (await handleAuthError(error)) return;
+
+            Swal.fire({
+                icon: "error",
+                title: "오류 발생",
+                text: error.response?.data?.detail || "댓글을 삭제할 수 없습니다.",
+                confirmButtonColor: "#EF4444",
+            });
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         loading,
         createComment,
-        getComments
+        getComments,
+        deleteComment
     };
 };
