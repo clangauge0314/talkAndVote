@@ -25,13 +25,13 @@ async def create_vote(
     return new_vote
 
 # ✅ 2. 특정 주제의 투표 현황 조회 (GET /vote/topic/{topic_id})
-@router.get("/topic/{topic_id}", response_model=list[VoteResponse])
+@router.get("/topic/{topic_id}")
 async def get_votes_by_topic(
     topic_id: int,
     time_range: str | None = Query(None, enum=["1h", "6h", "1d", "1w", "1m"]),  # ✅ 선택적 필터링
     db: AsyncSession = Depends(get_db)
 ):
-    votes = await VoteCrud.get_votes_by_topic(db, topic_id, time_range)
+    votes = await VoteService.get_vote(db, topic_id, time_range)
     return votes
 
 # ✅ 3. 특정 유저의 투표 내역 조회 (GET /vote/user/{user_id})
@@ -42,3 +42,11 @@ async def get_votes_by_user(
 ):
     votes = await VoteCrud.get_votes_by_user(db, user_id)
     return votes
+
+@router.post("/generate/{topic_id}")
+async def generate_large_votes(
+    topic_id: int,
+    num_votes: int = 1000,  # 기본적으로 1000개의 투표 생성
+    db: AsyncSession = Depends(get_db)
+):
+    return await VoteService.generate_large_votes(db, topic_id, num_votes)

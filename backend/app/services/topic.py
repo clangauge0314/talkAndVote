@@ -150,6 +150,6 @@ class TopicService:
         result = await TopicCrud.get(db=db, topic_id=topic_id)
     
         if not result:
-            raise ValueError("Topic not found")
+            return
 
         return await TopicService.get_topic_to_response(db,result, user_id)

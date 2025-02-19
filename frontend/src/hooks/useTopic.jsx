@@ -78,6 +78,37 @@ export const useTopic = () => {
         }
     };
 
+    const getTopicVotes = async (topicId, timeRange = "ALL") => {
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_URL}/vote/topic/${topicId}?time_range=${timeRange.toLowerCase()}`,
+                { withCredentials: true }
+            );
+    
+            if (response.status === 200 && response.data) {
+                console.log(`📊 [${timeRange}] 투표 데이터:`, response.data);
+                return response.data;
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "예기치 않은 응답",
+                    text: `서버에서 예상하지 못한 응답을 반환했습니다. (${response.status})`,
+                    confirmButtonColor: "#EF4444",
+                });
+                return null;
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "오류 발생",
+                text: error.response?.data?.error || "투표 데이터를 불러올 수 없습니다.",
+                confirmButtonColor: "#EF4444",
+            });
+    
+            return null;
+        }
+    };
+
     const addTopic = async (topicData) => {
         setLoading(true);
         try {
@@ -118,6 +149,7 @@ export const useTopic = () => {
         loading,
         addTopic,
         fetchTopics,
-        getTopicById
+        getTopicById,
+        getTopicVotes
     };
 };
