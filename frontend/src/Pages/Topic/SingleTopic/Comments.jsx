@@ -3,7 +3,7 @@ import { Heart } from 'lucide-react';
 import classNames from 'classnames';
 
 const Comments = ({ 
-  comments, 
+  comments = [],
   currentPage, 
   totalPages, 
   onPageChange, 
@@ -49,7 +49,7 @@ const Comments = ({
       </form>
 
       <div className="space-y-6">
-        {comments.map((comment) => (
+        {Array.isArray(comments) && comments.map((comment) => (
           <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between items-start">
               <div>
@@ -77,6 +77,9 @@ const Comments = ({
             <p className="mt-2 text-gray-700">{comment.content}</p>
           </div>
         ))}
+        {(!comments || comments.length === 0) && (
+          <p className="text-center text-gray-500">아직 댓글이 없습니다.</p>
+        )}
       </div>
 
       {totalPages > 1 && (

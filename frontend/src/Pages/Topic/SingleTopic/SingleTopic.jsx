@@ -131,8 +131,11 @@ const SingleTopic = () => {
   const fetchComments = async () => {
     const result = await getComments(id);
     if (result) {
-      setComments(result.comments);
-      setTotalPages(result.total_pages);
+      setComments(result.comments || []);
+      setTotalPages(result.total_pages || 1);
+    } else {
+      setComments([]);
+      setTotalPages(1);
     }
   };
 
@@ -336,11 +339,12 @@ const SingleTopic = () => {
       </div>
 
       <Comments
-        comments={comments}
+        comments={comments || []}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
         onSubmitComment={handleSubmitComment}
+        onLikeComment={handleLikeClick}
         loading={commentLoading}
       />
     </div>
