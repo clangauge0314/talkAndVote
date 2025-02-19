@@ -16,3 +16,12 @@ class CommentCrud:
     async def get_by_topic(db: AsyncSession, topic_id: int):
         result = await db.execute(select(Comment).filter(Comment.topic_id == topic_id))
         return result.scalars().all()
+
+    @staticmethod
+    async def delete(db: AsyncSession, comment_id: int):
+        comment = await db.get(Comment, comment_id)
+        if comment:
+            await db.delete(comment)
+            await db.commit()
+        return comment
+    

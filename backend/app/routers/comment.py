@@ -7,12 +7,17 @@ from app.db.schemas.comment import CommentCreate, CommentResponse
 
 router = APIRouter()
 
-@router.post("/comment/{topic_id}", response_model=CommentResponse)
-async def create_comment_router(topic_id:int, content: str, user_id: int = Depends(get_user_id), db: AsyncSession = Depends(get_db)):
-    result = await CommentCrud.create(db=db, comment_data=CommentCreate(user_id=user_id,topic_id=topic_id, content=content))
+@router.post("/comment", response_model=CommentResponse)
+async def create_comment_router(comment_data:CommentCreate, user_id: int = Depends(get_user_id), db: AsyncSession = Depends(get_db)):
+    result = await CommentCrud.create(db=db, comment_data=comment_data, user_id= user_id)
     return result
 
 @router.get("/comment/{topic_id}", response_model=list[CommentResponse])
 async def get_comment_router(topic_id:int, db: AsyncSession = Depends(get_db)):
     result = await CommentCrud.get_by_topic(db=db, topic_id=topic_id)
+    return result
+
+@router.delete("/comment/{comment_id}")
+async def delete_comment_router(comment_id:int, db: AsyncSession = Depends(get_db)):
+    result = await CommentCrud.delete(db=db, comment_id=comment_id)
     return result
