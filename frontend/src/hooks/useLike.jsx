@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 export const useLike = () => {
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const handleAuthError = async (error) => {
         if (error.response?.status === 401) {
@@ -30,10 +29,11 @@ export const useLike = () => {
             );
 
             if (response.status === 200) {
+                const isLiked = response.data.is_liked;
                 Swal.fire({
                     icon: "success",
                     title: "좋아요 처리 완료",
-                    text: "토픽에 좋아요를 처리했습니다.",
+                    text: isLiked ? "토픽에 좋아요를 표시했습니다." : "토픽 좋아요를 취소했습니다.",
                     confirmButtonColor: "#34D399",
                 });
                 return response.data;
@@ -71,24 +71,18 @@ export const useLike = () => {
             );
 
             if (response.status === 200) {
+                const isLiked = response.data.is_liked;
                 Swal.fire({
                     icon: "success",
                     title: "좋아요 처리 완료",
-                    text: "댓글에 좋아요를 처리했습니다.",
+                    text: isLiked ? "댓글에 좋아요를 표시했습니다." : "댓글 좋아요를 취소했습니다.",
                     confirmButtonColor: "#34D399",
                 });
                 return response.data;
-            } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "예기치 않은 응답",
-                    text: `서버에서 예상하지 못한 응답을 반환했습니다. (${response.status})`,
-                    confirmButtonColor: "#EF4444",
-                });
-                return null;
             }
+            return null;
         } catch (error) {
-            if (await handleAuthError(error)) return;
+            if (await handleAuthError(error)) return null;
 
             Swal.fire({
                 icon: "error",

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Heart } from 'lucide-react';
-import classNames from 'classnames';
-import { useLike } from '../../../hooks/useLike';
+import { useState } from "react";
+import { Heart } from "lucide-react";
+import classNames from "classnames";
+import { useLike } from "../../../hooks/useLike";
 
 const PaginationControls = ({ currentPage, totalPages, onPageChange }) => (
   <div className="flex justify-center gap-2 mt-4">
@@ -25,16 +25,16 @@ const PaginationControls = ({ currentPage, totalPages, onPageChange }) => (
   </div>
 );
 
-const Comments = ({ 
-  comments = [], 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
-  onSubmitComment, 
+const Comments = ({
+  comments = [],
+  currentPage,
+  totalPages,
+  onPageChange,
+  onSubmitComment,
   loading,
-  refreshComments  
+  refreshComments,
 }) => {
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const { toggleCommentLike } = useLike();
 
   const handleSubmit = (e) => {
@@ -42,14 +42,12 @@ const Comments = ({
     if (!newComment.trim()) return;
 
     onSubmitComment(newComment);
-    setNewComment('');
+    setNewComment("");
   };
 
   const handleLike = async (commentId) => {
-    const result = await toggleCommentLike(commentId);
-    if (result) {
-      refreshComments();  // 좋아요 토글 후 댓글 목록 새로고침
-    }
+    await toggleCommentLike(commentId);
+    refreshComments();
   };
 
   return (
@@ -83,8 +81,8 @@ const Comments = ({
       <div className="space-y-6">
         {comments && comments.length > 0 ? (
           comments.map((comment) => (
-            <div 
-              key={comment.comment_id} 
+            <div
+              key={comment.comment_id}
               className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
             >
               <div className="flex justify-between items-start mb-3">
@@ -95,14 +93,16 @@ const Comments = ({
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">{comment.username}</p>
+                    <p className="font-semibold text-gray-800">
+                      {comment.username}
+                    </p>
                     <p className="text-sm text-gray-500">
-                      {new Date(comment.created_at).toLocaleString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                      {new Date(comment.created_at).toLocaleString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </div>
@@ -111,27 +111,35 @@ const Comments = ({
                   onClick={() => handleLike(comment.comment_id)}
                   className={classNames(
                     "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
-                    comment.has_liked 
-                      ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100" 
+                    comment.has_liked
+                      ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
                       : "text-gray-500 hover:bg-gray-50"
                   )}
                 >
-                  <Heart 
+                  <Heart
                     className={classNames(
                       "w-5 h-5 transition-colors duration-200",
-                      comment.has_liked ? "fill-emerald-500 stroke-emerald-500" : "fill-none stroke-current"
+                      comment.has_liked
+                        ? "fill-emerald-500 stroke-emerald-500"
+                        : "fill-none stroke-current"
                     )}
                   />
-                  <span className="text-sm font-medium">{comment.like_count}</span>
+                  <span className="text-sm font-medium">
+                    {comment.like_count}
+                  </span>
                 </button>
               </div>
-              <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {comment.content}
+              </p>
             </div>
           ))
         ) : (
           <div className="text-center py-10 bg-gray-50 rounded-lg">
             <p className="text-gray-500">아직 댓글이 없습니다.</p>
-            <p className="text-gray-400 text-sm mt-1">첫 번째 댓글을 작성해보세요!</p>
+            <p className="text-gray-400 text-sm mt-1">
+              첫 번째 댓글을 작성해보세요!
+            </p>
           </div>
         )}
       </div>
