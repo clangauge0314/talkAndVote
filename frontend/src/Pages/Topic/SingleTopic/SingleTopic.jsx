@@ -14,11 +14,8 @@ import classNames from "classnames";
 import { useTopic } from "../../../hooks/useTopic";
 import { useLike } from "../../../hooks/useLike";
 import { useVote } from "../../../hooks/useVote";
-<<<<<<< HEAD
-import { useComment } from '../../../hooks/useComment';
-import Comments from './Comments';
-=======
->>>>>>> a42dde08fa49e34f340a2277fca3f0ecb988d4c6
+import { useComment } from "../../../hooks/useComment";
+import Comments from "./Comments";
 
 const timeFrames = ["1H", "6H", "1D", "1W", "1M", "ALL"];
 
@@ -45,11 +42,7 @@ const SingleTopic = () => {
   const { getTopicById, getTopicVotes } = useTopic();
   const { toggleTopicLike } = useLike();
   const { submitVote } = useVote();
-<<<<<<< HEAD
-  const { createComment, getComments } = useComment();
-  const { toggleCommentLike } = useLike();
-=======
->>>>>>> a42dde08fa49e34f340a2277fca3f0ecb988d4c6
+  const { createComment, getComments, loading: commentLoading } = useComment();
 
   const [selectedTimeFrame, setSelectedTimeFrame] = useState("ALL");
   const [topic, setTopic] = useState(null);
@@ -78,8 +71,6 @@ const SingleTopic = () => {
       setUserVoteIndex(topicData.user_vote_index);
       setLikes(topicData.like_count);
       setLiked(topicData.has_liked);
-<<<<<<< HEAD
-=======
     }
     setLoading(false);
   }, [id, getTopicById]);
@@ -137,100 +128,18 @@ const SingleTopic = () => {
     }
   };
 
-  const fetchComments = async (page = 1) => {
-    const commentsData = await getComments(id);
-    if (commentsData) {
-      const startIndex = (page - 1) * 10;
-      const endIndex = startIndex + 10;
-      setComments(commentsData.slice(startIndex, endIndex));
-      setTotalPages(Math.ceil(commentsData.length / 10));
-    }
-  };
-
-<<<<<<< HEAD
-  useEffect(() => {
-    fetchTopic();
-    fetchTopicVotes('ALL');
-    fetchComments();
-=======
-  const fetchTopic = useCallback(async () => {
-    setLoading(true);
-    const topicData = await getTopicById(id);
-  
-    if (topicData) {
-      setTopic((prevTopic) => {
-        if (JSON.stringify(prevTopic) === JSON.stringify(topicData)) {
-          return prevTopic;
-        }
-        return topicData;
-      });
-  
-      setHasVoted(topicData.has_voted);
-      setUserVoteIndex(topicData.user_vote_index);
-      setLikes(topicData.like_count);
-      setLiked(topicData.is_liked);
->>>>>>> d8765c77792618cefff5402d82bbaf4b8646d030
-    }
-    setLoading(false);
-  }, [id, getTopicById]);
-
-  const fetchTopicVotes = async (frame) => {
-    const voteData = await getTopicVotes(id, frame);
-    if (voteData && topic) {
-      const groupedData = voteData.reduce((acc, vote) => {
-        const date = new Date(vote.created_at);
-        let timeKey;
-        
-        switch(frame) {
-          case '1H':
-            timeKey = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-            break;
-          case '6H':
-          case '1D':
-            timeKey = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-            break;
-          case '1W':
-            timeKey = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-            break;
-          case '1M':
-            timeKey = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-            break;
-          default:
-            timeKey = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-        }
-
-        if (!acc[timeKey]) {
-          acc[timeKey] = {
-            time: timeKey,
-            votes_0: 0,
-            votes_1: 0,
-            votes_2: 0,
-            votes_3: 0,
-          };
-        }
-        acc[timeKey][`votes_${vote.vote_index}`]++;
-        return acc;
-      }, {});
-
-      const chartData = Object.values(groupedData).sort((a, b) => {
-        return new Date(a.time) - new Date(b.time);
-      });
-
-      setTopic(prevTopic => ({
-        ...prevTopic,
-        vote_trend_data: chartData,
-        vote_results: topic.vote_options.map((_, index) => 
-          voteData.filter(vote => vote.vote_index === index).length
-        ),
-        total_vote: voteData.length,
-      }));
+  const fetchComments = async () => {
+    const result = await getComments(id);
+    if (result) {
+      setComments(result.comments);
+      setTotalPages(result.total_pages);
     }
   };
 
   useEffect(() => {
     fetchTopic();
     fetchTopicVotes('ALL');
->>>>>>> a42dde08fa49e34f340a2277fca3f0ecb988d4c6
+    fetchComments();
   }, [id]);
 
   const handleTimeFrameClick = async (frame) => {
@@ -264,28 +173,18 @@ const SingleTopic = () => {
     }
   };
 
-<<<<<<< HEAD
-  const handleCommentSubmit = async (content) => {
+  const handleSubmitComment = async (content) => {
     const result = await createComment(id, content);
     if (result) {
-      await fetchComments(currentPage);
+      await fetchComments();
     }
   };
 
-  const handleCommentLike = async (commentId) => {
-    const result = await toggleCommentLike(commentId);
-    if (result !== null) {
-      await fetchComments(currentPage);
-    }
-  };
-
-  const handlePageChange = (page) => {
+  const handlePageChange = async (page) => {
     setCurrentPage(page);
-    fetchComments(page);
+    // Implement pagination logic here when backend supports it
   };
 
-=======
->>>>>>> a42dde08fa49e34f340a2277fca3f0ecb988d4c6
   if (loading) {
     return <p className="text-center text-gray-500">로딩 중...</p>;
   }
@@ -310,22 +209,12 @@ const SingleTopic = () => {
             liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
           )}
         >
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> d8765c77792618cefff5402d82bbaf4b8646d030
           <Heart 
             className={classNames(
               "w-7 h-7", 
               liked ? "fill-emerald-500" : "fill-none"
             )} 
           />
-<<<<<<< HEAD
-=======
-=======
-          <Heart className={classNames("w-7 h-7", liked ? "fill-emerald-500" : "fill-none")} />
->>>>>>> a42dde08fa49e34f340a2277fca3f0ecb988d4c6
->>>>>>> d8765c77792618cefff5402d82bbaf4b8646d030
           <span>{likes}</span>
         </button>
       </div>
@@ -445,19 +334,15 @@ const SingleTopic = () => {
           </button>
         ))}
       </div>
-<<<<<<< HEAD
 
       <Comments
         comments={comments}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
-        onSubmitComment={handleCommentSubmit}
-        onLikeComment={handleCommentLike}
-        loading={loading}
+        onSubmitComment={handleSubmitComment}
+        loading={commentLoading}
       />
-=======
->>>>>>> a42dde08fa49e34f340a2277fca3f0ecb988d4c6
     </div>
   );
 };

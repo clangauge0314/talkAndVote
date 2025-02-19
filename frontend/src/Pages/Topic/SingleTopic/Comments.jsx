@@ -24,7 +24,6 @@ const Comments = ({
     <div className="mt-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">댓글</h2>
       
-      {/* 댓글 작성 폼 */}
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
           value={newComment}
@@ -49,7 +48,6 @@ const Comments = ({
         </div>
       </form>
 
-      {/* 댓글 목록 */}
       <div className="space-y-6">
         {comments.map((comment) => (
           <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
@@ -81,7 +79,6 @@ const Comments = ({
         ))}
       </div>
 
-      {/* 페이지네이션 */}
       {totalPages > 1 && (
         <div className="flex justify-center space-x-2 mt-8">
           {[...Array(totalPages)].map((_, index) => (
