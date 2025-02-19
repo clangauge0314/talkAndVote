@@ -30,7 +30,7 @@ class CommentService:
             created_at=comment.created_at,
             like_count=like_count,
             has_liked= False,
-            reply=  await ReplyService.get_reply_response(db, comment_id=comment.comment_id)
+            reply=  await ReplyService.get_reply_response(db, comment_id=comment.comment_id, user_id=user_id)
         )
         
         if user_id is not None:

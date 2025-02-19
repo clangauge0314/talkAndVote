@@ -14,5 +14,21 @@ async def create_comment_router(reply_data:ReplyCreate, user_id: int = Depends(g
 
 @router.delete("/reply/{reply_id}")
 async def delete_comment_router(reply_id:int, user_id: int = Depends(get_user_id),db: AsyncSession = Depends(get_db)):
+    
+    result = await ReplyCrud.get(db=db, reply_id=reply_id)
+    if not result:
+        raise HTTPException(
+        status_code=404,
+        detail="대댓글 없",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    if result.user_id != user_id:
+        raise HTTPException(
+        status_code=401,
+        detail="니 대댓글 아님",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
     result = await ReplyCrud.delete(db=db, reply_id=reply_id)
     return result

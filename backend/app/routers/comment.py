@@ -19,5 +19,20 @@ async def get_comment_router(topic_id:int, user_id: int = Depends(get_user_id_op
     return result
 
 @router.delete("/comment/{comment_id}")
-async def delete_comment_router(comment_id:int, user_id: int = Depends(get_user_id_optional),db: AsyncSession = Depends(get_db)):
-    result = await CommentCrud.delete(db=db, comment_id=comment_id)
+async def delete_comment_router(comment_id:int, user_id: int = Depends(get_user_id),db: AsyncSession = Depends(get_db)):
+    result = await CommentCrud.get(db=db, comment_id=comment_id)
+    if not result:
+        raise HTTPException(
+        status_code=404,
+        detail="댓글 없",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    if result.user_id != user_id:
+        raise HTTPException(
+        status_code=401,
+        detail="니 댓글 아님",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    return await CommentCrud.delete(db=db, comment_id=comment_id)

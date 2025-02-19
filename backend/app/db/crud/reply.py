@@ -4,6 +4,12 @@ from app.db.models import Reply
 from app.db.schemas.reply import ReplyCreate
 
 class ReplyCrud:
+    
+    
+    @staticmethod
+    async def get(db: AsyncSession, reply_id: int):
+        return await db.get(Reply, reply_id)
+    
     @staticmethod
     async def create(db: AsyncSession, reply_data: ReplyCreate, user_id: int):
         reply = Reply(user_id=user_id, **reply_data.model_dump())

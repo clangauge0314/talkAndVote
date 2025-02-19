@@ -4,6 +4,12 @@ from app.db.models import Comment
 from app.db.schemas.comment import CommentCreate
 
 class CommentCrud:
+    
+    
+    @staticmethod
+    async def get(db: AsyncSession, comment_id: int):
+        return await db.get(Comment, comment_id)
+    
     @staticmethod
     async def create(db: AsyncSession, comment_data: CommentCreate, user_id: int):
         comment = Comment(user_id=user_id, **comment_data.model_dump())
