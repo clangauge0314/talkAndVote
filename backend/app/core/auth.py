@@ -45,3 +45,16 @@ async def get_user_id(request: Request) -> int:
         return user_id
     else:
         raise HTTPException(status_code=401, detail="Invalid or expired access token")
+
+
+async def get_user_id_optional(request: Request) -> int | None:
+    """ 로그인 선택 API용: 토큰이 없거나 유효하지 않으면 None 반환 """
+    
+    access_token = request.cookies.get("access_token")
+    
+    if not access_token:
+        return None  # ✅ 비로그인 허용
+
+    user_id = verify_token(access_token)
+    
+    return user_id if user_id else None
