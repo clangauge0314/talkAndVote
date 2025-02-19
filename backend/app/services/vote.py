@@ -21,7 +21,7 @@ class VoteService:
         db: AsyncSession,
         topic_id: int,
         interval: str,
-        time_range: str | None = None
+        time_range: str
     ):
         """ 
         특정 시간 범위 내에서 각 투표 옵션별 **누적** 개수와 비율을 반환  
@@ -51,7 +51,7 @@ class VoteService:
         vote_option_len = len(topic.vote_options)
         
         # start_time부터 now까지의 투표 조회
-        votes = await VoteCrud.get_votes_in_range(db, topic_id, start_time=start_time)
+        votes = await VoteCrud.get_votes_in_range(db, topic_id, delta=time_delta)
         
         
         # 투표를 생성 시간 기준으로 정렬 (누적 계산에 용이)
@@ -82,37 +82,59 @@ class VoteService:
                 percent = round((count / total * 100), 2) if total > 0 else 0
                 stats[i] = {"count": count, "percent": percent}
 
-            # 구간의 시작 시각(ISO 포맷)을 키로 사용하여 누적 결과 저장
             result[current_time.strftime("%Y-%m-%d %H:%M")] = stats
 
             current_time = next_time
 
         return result
+    
+    
+    
+    async def get_votes_all(db: AsyncSession, topic_id: int):
+        votes = await VoteCrud.get_votes_by_topic(db=db, topic_id=topic_id)
+        topic = await TopicCrud.get(db=db, topic_id=topic_id)
+        vote_option_len = len(topic.vote_options)
+        return VoteService.aggregate_votes(votes,vote_option_len)
+    
+    
+    async def get_votes_range(db: AsyncSession, topic_id: int, time_range: str):
+        votes = await VoteCrud.get_votes_in_range(db=db, topic_id=topic_id, delta=VoteService.parse_interval(time_range))
+        topic = await TopicCrud.get(db=db, topic_id=topic_id)
+        vote_option_len = len(topic.vote_options)
+        return VoteService.aggregate_votes(votes,vote_option_len)
+    
+    
+    @staticmethod
+    def aggregate_votes(votes: list[Vote], vote_option_len: int):
+        """옵션별 개수와 백분율을 계산하는 함수"""
+        counts = {i:0 for i in range(vote_option_len)}
+        for vote in votes:
+            counts[vote.vote_index] += 1
+
+        total = sum(counts.values())
+        return {
+            str(i): {
+                "count": counts.get(i, 0),
+                "percent": (counts.get(i, 0) / total * 100) if total > 0 else 0
+            }
+            for i in range(len(counts))
+        }
+    
 
     @staticmethod
     def parse_interval(interval_str: str) -> timedelta:
-        """
-        interval 문자열 (예: '10m', '1h', '1d', '1w')을 timedelta로 변환  
-        여기서는 'm'은 분(minutes)으로 처리합니다.
-        """
         match = re.match(r"(\d+)([mhdw])$", interval_str)
         if not match:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid interval format. Use '10m', '1h', '1d', or '1w'."
-            )
+            raise HTTPException(status_code=400, detail="Invalid interval format. Use '10m', '1h', '1d', or '1w'.")
+        
         value, unit = match.groups()
         value = int(value)
-        if unit == "m":
-            return timedelta(minutes=value)
-        elif unit == "h":
-            return timedelta(hours=value)
-        elif unit == "d":
-            return timedelta(days=value)
-        elif unit == "w":
-            return timedelta(weeks=value)
-        else:
-            raise HTTPException(status_code=400, detail="Invalid interval unit.")
+        return {
+            "m": timedelta(minutes=value),
+            "h": timedelta(hours=value),
+            "d": timedelta(days=value),
+            "w": timedelta(weeks=value),
+        }[unit]
     
     
     @staticmethod

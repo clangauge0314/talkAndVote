@@ -24,12 +24,11 @@ async def create_vote(
     new_vote = await VoteCrud.create(db=db, vote_data=vote_data, user_id=user_id)
     return new_vote
 
-# ✅ 2. 특정 주제의 투표 현황 조회 (GET /vote/topic/{topic_id})
 @router.get("/topic/{topic_id}")
 async def get_votes_by_topic(
     topic_id: int,
-    time_range: str = Query("1d", description="조회할 기간 (예: 1h, 6h, 1d, 1w, 1m, 2d, 3w)"),
-    interval: str = Query("1h", description="데이터를 그룹화할 단위 시간 (예: 5m, 1h, 6h, 1d)"),
+    time_range: str | None = Query(None, description="조회할 기간 (예: 1h, 6h, 1d, 1w, 1m, 2d, 3w)"),
+    interval: str | None = Query(None, description="데이터를 그룹화할 단위 시간 (예: 5m, 1h, 6h, 1d)"),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -37,8 +36,16 @@ async def get_votes_by_topic(
     - `time_range`: 조회할 기간 (예: `1h`, `3d`, `2w`)
     - `interval`: 데이터를 그룹화할 단위 시간 (예: `5m`, `1h`, `1d`)
     """
-    votes = await VoteService.get_vote(db, topic_id,interval, time_range)
+
+    if not time_range:
+        votes = await VoteService.get_votes_all(db, topic_id)
+    elif interval:
+        votes = await VoteService.get_vote(db, topic_id, interval, time_range)
+    else:
+        votes = await VoteService.get_votes_range(db, topic_id, time_range)
+
     return votes
+
 
 # ✅ 3. 특정 유저의 투표 내역 조회 (GET /vote/user/{user_id})
 @router.get("/user", response_model=list[VoteResponse])

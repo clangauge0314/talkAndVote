@@ -35,8 +35,9 @@ class VoteCrud:
 
 
     @staticmethod
-    async def get_votes_in_range(db: AsyncSession,topic_id:int ,start_time: datetime):
+    async def get_votes_in_range(db: AsyncSession,topic_id:int ,delta: timedelta):
         now = datetime.now(timezone.utc)
+        start_time = now - delta
         
         query = select(Vote).where(Vote.created_at.between(start_time, now)).filter(Vote.topic_id == topic_id)
         result = await db.execute(query)
