@@ -64,7 +64,7 @@ const SingleTopic = () => {
       setHasVoted(topicData.has_voted);
       setUserVoteIndex(topicData.user_vote_index);
       setLikes(topicData.like_count);
-      setLiked(topicData.is_liked);
+      setLiked(topicData.has_liked);
     }
     setLoading(false);
   }, [id, getTopicById]);
@@ -138,7 +138,7 @@ const SingleTopic = () => {
     const result = await toggleTopicLike(id);
     if (result !== null) {
       setLiked(!liked);
-      setLikes(liked ? likes - 1 : likes + 1);
+      setLikes(prev => liked ? prev - 1 : prev + 1);
     }
   };
 
@@ -182,7 +182,12 @@ const SingleTopic = () => {
             liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
           )}
         >
-          <Heart className={classNames("w-7 h-7", liked ? "fill-emerald-500" : "fill-none")} />
+          <Heart 
+            className={classNames(
+              "w-7 h-7", 
+              liked ? "fill-emerald-500" : "fill-none"
+            )} 
+          />
           <span>{likes}</span>
         </button>
       </div>

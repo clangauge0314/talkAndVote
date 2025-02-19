@@ -6,7 +6,8 @@ class Vote(Base):
     __tablename__ = "votes"
     
     vote_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(Integer, nullable=False) # 테스트 데이터를 위한 제약 제거
+    # user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     topic_id = Column(Integer, ForeignKey("topics.topic_id"), nullable=False)
     vote_index = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
