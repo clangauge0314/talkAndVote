@@ -1,0 +1,99 @@
+import { useState } from 'react';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
+
+export const useComment = () => {
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const handleAuthError = async (error) => {
+        if (error.response?.status === 401) {
+            await logout();
+            navigate('/login');
+            return true;
+        }
+        return false;
+    };
+
+    const createComment = async (topicId, content) => {
+        setLoading(true);
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_URL}/comment/${topicId}`,
+                { content },
+                { withCredentials: true }
+            );
+
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "댓글 작성 완료",
+                    text: "댓글이 성공적으로 작성되었습니다.",
+                    confirmButtonColor: "#34D399",
+                });
+                return response.data;
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "예기치 않은 응답",
+                    text: `서버에서 예상하지 못한 응답을 반환했습니다. (${response.status})`,
+                    confirmButtonColor: "#EF4444",
+                });
+                return null;
+            }
+        } catch (error) {
+            if (await handleAuthError(error)) return;
+
+            Swal.fire({
+                icon: "error",
+                title: "오류 발생",
+                text: error.response?.data?.error || "댓글을 작성할 수 없습니다.",
+                confirmButtonColor: "#EF4444",
+            });
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getComments = async (topicId) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_URL}/comment/${topicId}`,
+                { withCredentials: true }
+            );
+
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "예기치 않은 응답",
+                    text: `서버에서 예상하지 못한 응답을 반환했습니다. (${response.status})`,
+                    confirmButtonColor: "#EF4444",
+                });
+                return null;
+            }
+        } catch (error) {
+            if (await handleAuthError(error)) return;
+
+            Swal.fire({
+                icon: "error",
+                title: "오류 발생",
+                text: error.response?.data?.error || "댓글을 불러올 수 없습니다.",
+                confirmButtonColor: "#EF4444",
+            });
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        loading,
+        createComment,
+        getComments
+    };
+};
