@@ -9,8 +9,12 @@ export const useTopic = () => {
 
     const handleAuthError = async (error) => {
         if (error.response?.status === 401) {
-            await logout();
-            navigate('/login');
+            await Swal.fire({
+                title: '로그인이 필요합니다!',
+                text: '이 페이지를 이용하려면 로그인하세요.',
+                icon: 'warning',
+                confirmButtonText: '확인'
+            });
             return true;
         }
         return false;
@@ -84,7 +88,7 @@ export const useTopic = () => {
                 `${import.meta.env.VITE_API_URL}/vote/topic/${topicId}?time_range=${timeRange.toLowerCase()}`,
                 { withCredentials: true }
             );
-    
+
             if (response.status === 200 && response.data) {
                 console.log(`📊 [${timeRange}] 투표 데이터:`, response.data);
                 return response.data;
@@ -104,7 +108,7 @@ export const useTopic = () => {
                 text: error.response?.data?.error || "투표 데이터를 불러올 수 없습니다.",
                 confirmButtonColor: "#EF4444",
             });
-    
+
             return null;
         }
     };

@@ -50,16 +50,16 @@ const Comments = ({
 
       <div className="space-y-6">
         {Array.isArray(comments) && comments.map((comment) => (
-          <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
+          <div key={comment.comment_id} className="bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium text-gray-800">{comment.user_name}</p>
+                <p className="font-medium text-gray-800">{comment.user_id}</p>
                 <p className="text-sm text-gray-500">
                   {new Date(comment.created_at).toLocaleString('ko-KR')}
                 </p>
               </div>
               <button
-                onClick={() => onLikeComment(comment.id)}
+                onClick={() => onLikeComment(comment.comment_id)}
                 className={classNames(
                   "flex items-center space-x-1 text-sm transition-all",
                   comment.has_liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
@@ -71,7 +71,7 @@ const Comments = ({
                     comment.has_liked ? "fill-emerald-500" : "fill-none"
                   )}
                 />
-                <span>{comment.like_count}</span>
+                <span>{comment.like_count || 0}</span>
               </button>
             </div>
             <p className="mt-2 text-gray-700">{comment.content}</p>

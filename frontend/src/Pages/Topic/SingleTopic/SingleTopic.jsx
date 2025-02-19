@@ -131,6 +131,7 @@ const SingleTopic = () => {
   const fetchComments = async () => {
     const result = await getComments(id);
     if (result) {
+      console.log(result)
       setComments(result.comments || []);
       setTotalPages(result.total_pages || 1);
     } else {
@@ -143,7 +144,7 @@ const SingleTopic = () => {
     fetchTopic();
     fetchTopicVotes('ALL');
     fetchComments();
-  }, [id]);
+  }, []);
 
   const handleTimeFrameClick = async (frame) => {
     if (frame !== selectedTimeFrame) {

@@ -8,9 +8,13 @@ export const useComment = () => {
     const navigate = useNavigate();
 
     const handleAuthError = async (error) => {
-        if (error.response?.status === 401) {
-            await logout();
-            navigate('/login');
+        if (error.response.status === 401) {
+            await Swal.fire({
+                title: '로그인이 필요합니다!',
+                text: '이 페이지를 이용하려면 로그인하세요.',
+                icon: 'warning',
+                confirmButtonText: '확인'
+            });
             return true;
         }
         return false;
@@ -20,8 +24,8 @@ export const useComment = () => {
         setLoading(true);
         try {
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/comment/${topicId}`,
-                { content },
+                `${import.meta.env.VITE_API_URL}/comment`,
+                { topic_id: topicId, content },
                 { withCredentials: true }
             );
 
@@ -34,6 +38,7 @@ export const useComment = () => {
                 });
                 return response.data;
             } else {
+
                 Swal.fire({
                     icon: "error",
                     title: "예기치 않은 응답",
