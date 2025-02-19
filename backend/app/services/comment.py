@@ -4,7 +4,7 @@ from app.db.crud.comment import CommentCrud
 from app.db.crud.like import LikeCrud
 from app.db.schemas.comment import CommentResponse
 from app.db.crud.user import UserCrud
-from backend.app.db.crud.reply import ReplyCrud
+from app.db.crud.reply import ReplyCrud
 
 class CommentService:
     @staticmethod

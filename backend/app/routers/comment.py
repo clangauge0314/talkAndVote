@@ -14,8 +14,8 @@ async def create_comment_router(comment_data:CommentCreate, user_id: int = Depen
     return await CommentService.comment_to_response(db,result,user_id)
 
 @router.get("/comment/{topic_id}", response_model=list[CommentResponse])
-async def get_comment_router(topic_id:int, db: AsyncSession = Depends(get_db)):
-    result = await CommentService.get_comment_response(db=db, topic_id=topic_id)
+async def get_comment_router(topic_id:int, user_id: int = Depends(get_user_id),db: AsyncSession = Depends(get_db)):
+    result = await CommentService.get_comment_response(db=db, topic_id=topic_id, user_id=user_id)
     return result
 
 @router.delete("/comment/{comment_id}")
