@@ -24,4 +24,4 @@ class CommentResponse(CommentSchemas):
     username: str
     like_count: int = 0
     has_liked: bool = False
-    # reply: list[ReplyResponse]
+    reply: list[ReplyResponse]

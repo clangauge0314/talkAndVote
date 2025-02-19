@@ -97,3 +97,11 @@ class LikeCrud:
         )
         like = result.scalar_one_or_none()
         return like is not None
+    
+    @staticmethod
+    async def is_reply_liked_by_user(db: AsyncSession, reply_id: int, user_id: int) -> bool:
+        result = await db.execute(
+            select(ReplyLike).where((ReplyLike.reply_id == reply_id) & (ReplyLike.user_id == user_id))
+        )
+        like = result.scalar_one_or_none()
+        return like is not None
