@@ -71,6 +71,12 @@ export const useLike = () => {
             );
 
             if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "좋아요 처리 완료",
+                    text: "댓글에 좋아요를 처리했습니다.",
+                    confirmButtonColor: "#34D399",
+                });
                 return response.data;
             } else {
                 Swal.fire({

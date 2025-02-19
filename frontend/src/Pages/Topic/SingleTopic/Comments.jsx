@@ -1,6 +1,29 @@
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import classNames from 'classnames';
+import { useLike } from '../../../hooks/useLike';
+
+const PaginationControls = ({ currentPage, totalPages, onPageChange }) => (
+  <div className="flex justify-center gap-2 mt-4">
+    <button
+      onClick={() => onPageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
+    >
+      이전
+    </button>
+    <span className="px-3 py-1">
+      {currentPage} / {totalPages}
+    </span>
+    <button
+      onClick={() => onPageChange(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
+    >
+      다음
+    </button>
+  </div>
+);
 
 const Comments = ({ 
   comments = [], 
@@ -8,11 +31,11 @@ const Comments = ({
   totalPages, 
   onPageChange, 
   onSubmitComment, 
-  onLikeComment, 
-  loading 
+  loading,
+  refreshComments  
 }) => {
   const [newComment, setNewComment] = useState('');
-  const [localComments, setLocalComments] = useState(comments);
+  const { toggleCommentLike } = useLike();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,20 +45,11 @@ const Comments = ({
     setNewComment('');
   };
 
-  const handleLike = (commentId) => {
-    setLocalComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.comment_id === commentId
-          ? {
-              ...comment,
-              has_liked: !comment.has_liked,
-              like_count: comment.has_liked ? comment.like_count - 1 : comment.like_count + 1,
-            }
-          : comment
-      )
-    );
-
-    onLikeComment(commentId);
+  const handleLike = async (commentId) => {
+    const result = await toggleCommentLike(commentId);
+    if (result) {
+      refreshComments();  // 좋아요 토글 후 댓글 목록 새로고침
+    }
   };
 
   return (
@@ -67,57 +81,67 @@ const Comments = ({
       </form>
 
       <div className="space-y-6">
-        {Array.isArray(localComments) && localComments.length > 0 ? (
-          localComments.map((comment) => (
-            <div key={comment.comment_id} className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-gray-800">{comment.username}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(comment.created_at).toLocaleString('ko-KR')}
-                  </p>
+        {comments && comments.length > 0 ? (
+          comments.map((comment) => (
+            <div 
+              key={comment.comment_id} 
+              className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <span className="text-emerald-600 font-medium">
+                      {comment.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">{comment.username}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(comment.created_at).toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => handleLike(comment.comment_id)}
                   className={classNames(
-                    "flex items-center space-x-1 text-sm transition-all",
-                    comment.has_liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
+                    "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
+                    comment.has_liked 
+                      ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100" 
+                      : "text-gray-500 hover:bg-gray-50"
                   )}
                 >
                   <Heart 
                     className={classNames(
-                      "w-5 h-5",
-                      comment.has_liked ? "fill-emerald-500" : "fill-none"
+                      "w-5 h-5 transition-colors duration-200",
+                      comment.has_liked ? "fill-emerald-500 stroke-emerald-500" : "fill-none stroke-current"
                     )}
                   />
-                  <span>{comment.like_count || 0}</span>
+                  <span className="text-sm font-medium">{comment.like_count}</span>
                 </button>
               </div>
-              <p className="mt-2 text-gray-700">{comment.content}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">아직 댓글이 없습니다.</p>
+          <div className="text-center py-10 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">아직 댓글이 없습니다.</p>
+            <p className="text-gray-400 text-sm mt-1">첫 번째 댓글을 작성해보세요!</p>
+          </div>
         )}
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center space-x-2 mt-8">
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              onClick={() => onPageChange(index + 1)}
-              className={classNames(
-                "px-4 py-2 rounded-lg transition-all",
-                currentPage === index + 1
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              )}
-            >
-              {index + 1}
-            </button>
-          ))}
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       )}
     </div>
   );

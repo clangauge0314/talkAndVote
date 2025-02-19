@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 export const useComment = () => {
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const handleAuthError = async (error) => {
         if (error.response.status === 401) {

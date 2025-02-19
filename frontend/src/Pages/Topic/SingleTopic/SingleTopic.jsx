@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   LineChart,
@@ -54,6 +54,18 @@ const SingleTopic = () => {
   const [comments, setComments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const totalPages = Math.ceil((comments?.length || 0) / itemsPerPage);
+    
+    return {
+      currentPageData: comments?.slice(startIndex, endIndex) || [],
+      totalPages
+    };
+  }, [comments, currentPage, itemsPerPage]);
 
   const fetchTopic = useCallback(async () => {
     setLoading(true);
@@ -132,11 +144,10 @@ const SingleTopic = () => {
     const result = await getComments(id);
     if (result) {
       console.log(result)
-      setComments(result.comments || []);
-      setTotalPages(result.total_pages || 1);
+      setComments(result || []);
     } else {
       setComments([]);
-      setTotalPages(1);
+      setCurrentPage(1);
     }
   };
 
@@ -184,9 +195,12 @@ const SingleTopic = () => {
     }
   };
 
-  const handlePageChange = async (page) => {
+  const handlePageChange = (page) => {
     setCurrentPage(page);
-    // Implement pagination logic here when backend supports it
+  };
+
+  const refreshComments = async () => {
+    await fetchComments();
   };
 
   if (loading) {
@@ -340,13 +354,13 @@ const SingleTopic = () => {
       </div>
 
       <Comments
-        comments={comments || []}
+        comments={paginatedData.currentPageData}
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={paginatedData.totalPages}
         onPageChange={handlePageChange}
         onSubmitComment={handleSubmitComment}
-        onLikeComment={handleLikeClick}
         loading={commentLoading}
+        refreshComments={refreshComments}
       />
     </div>
   );
