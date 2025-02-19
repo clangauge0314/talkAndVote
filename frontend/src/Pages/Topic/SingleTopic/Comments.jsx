@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, MessageCircle, X, Send, Trash2 } from "lucide-react";
 import classNames from "classnames";
 import { useLike } from "../../../hooks/useLike";
+import { useReply } from "../../../hooks/useReply";
 
 const PaginationControls = ({ currentPage, totalPages, onPageChange }) => (
   <div className="flex justify-center gap-2 mt-4">
@@ -25,6 +26,125 @@ const PaginationControls = ({ currentPage, totalPages, onPageChange }) => (
   </div>
 );
 
+const ReplyForm = ({ onSubmit, onCancel }) => {
+  const [content, setContent] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!content.trim()) return;
+    onSubmit(content);
+    setContent("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 mb-2">
+      <div className="flex items-start space-x-2">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="답글을 작성해주세요..."
+          className="flex-1 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
+          rows="2"
+        />
+        <div className="flex flex-col space-y-2">
+          <button
+            type="submit"
+            disabled={!content.trim()}
+            className={classNames(
+              "p-2 rounded-lg transition-all",
+              content.trim()
+                ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            )}
+          >
+            <Send className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+};
+
+const Reply = ({ reply, currentUserId, onDelete, refreshComments }) => {
+  const { toggleReplyLike } = useLike();
+
+  const handleLike = async () => {
+    const result = await toggleReplyLike(reply.reply_id);
+    if (result !== null) {
+      refreshComments();
+    }
+  };
+
+  return (
+    <div className="pl-12 mt-3">
+      <div className="flex items-start justify-between bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+            <span className="text-emerald-600 font-medium text-sm">
+              {reply.username.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center space-x-2">
+              <p className="font-semibold text-gray-800 text-sm">
+                {reply.username}
+              </p>
+              <p className="text-xs text-gray-500">
+                {new Date(new Date(reply.created_at).getTime() + 9 * 60 * 60 * 1000).toLocaleString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+            <p className="text-gray-700 text-sm mt-1 whitespace-pre-wrap">
+              {reply.content}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleLike}
+            className={classNames(
+              "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
+              reply.has_liked
+                ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+          >
+            <Heart
+              className={classNames(
+                "w-5 h-5 transition-colors duration-200",
+                reply.has_liked
+                  ? "fill-emerald-500 stroke-emerald-500"
+                  : "fill-none stroke-current"
+              )}
+            />
+            <span className="text-sm font-medium">{reply.like_count}</span>
+          </button>
+          {currentUserId === reply.user_id && (
+            <button
+              onClick={() => onDelete(reply.reply_id)}
+              className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Comments = ({
   comments = [],
   currentPage,
@@ -33,21 +153,41 @@ const Comments = ({
   onSubmitComment,
   loading,
   refreshComments,
+  currentUserId,
 }) => {
   const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
   const { toggleCommentLike } = useLike();
+  const { createReply, deleteReply } = useReply();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-
     onSubmitComment(newComment);
     setNewComment("");
   };
 
   const handleLike = async (commentId) => {
-    await toggleCommentLike(commentId);
-    refreshComments();
+    const result = await toggleCommentLike(commentId);
+    if (result !== null) {
+      refreshComments();
+    }
+  };
+
+  const handleReplySubmit = async (content) => {
+    if (!replyingTo) return;
+    const result = await createReply(replyingTo, content);
+    if (result) {
+      setReplyingTo(null);
+      refreshComments();
+    }
+  };
+
+  const handleReplyDelete = async (replyId) => {
+    const result = await deleteReply(replyId);
+    if (result) {
+      refreshComments();
+    }
   };
 
   return (
@@ -97,7 +237,7 @@ const Comments = ({
                       {comment.username}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {new Date(comment.created_at).toLocaleString("ko-KR", {
+                      {new Date(new Date(comment.created_at).getTime() + 9 * 60 * 60 * 1000).toLocaleString("ko-KR", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -107,31 +247,57 @@ const Comments = ({
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleLike(comment.comment_id)}
-                  className={classNames(
-                    "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
-                    comment.has_liked
-                      ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
-                      : "text-gray-500 hover:bg-gray-50"
-                  )}
-                >
-                  <Heart
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleLike(comment.comment_id)}
                     className={classNames(
-                      "w-5 h-5 transition-colors duration-200",
+                      "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
                       comment.has_liked
-                        ? "fill-emerald-500 stroke-emerald-500"
-                        : "fill-none stroke-current"
+                        ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
+                        : "text-gray-500 hover:bg-gray-50"
                     )}
-                  />
-                  <span className="text-sm font-medium">
-                    {comment.like_count}
-                  </span>
-                </button>
+                  >
+                    <Heart
+                      className={classNames(
+                        "w-5 h-5 transition-colors duration-200",
+                        comment.has_liked
+                          ? "fill-emerald-500 stroke-emerald-500"
+                          : "fill-none stroke-current"
+                      )}
+                    />
+                    <span className="text-sm font-medium">
+                      {comment.like_count}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setReplyingTo(comment.comment_id)}
+                    className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-50"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">답글</span>
+                  </button>
+                </div>
               </div>
               <p className="text-gray-700 whitespace-pre-wrap">
                 {comment.content}
               </p>
+
+              {replyingTo === comment.comment_id && (
+                <ReplyForm
+                  onSubmit={handleReplySubmit}
+                  onCancel={() => setReplyingTo(null)}
+                />
+              )}
+
+              {comment.reply?.map((reply) => (
+                <Reply
+                  key={reply.reply_id}
+                  reply={reply}
+                  currentUserId={currentUserId}
+                  onDelete={handleReplyDelete}
+                  refreshComments={refreshComments}
+                />
+              ))}
             </div>
           ))
         ) : (

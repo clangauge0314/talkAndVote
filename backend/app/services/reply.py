@@ -22,7 +22,7 @@ class ReplyService:
 
         topic_response = ReplyResponse(
             comment_id= reply.comment_id,
-            topic_id= reply.reply_id,
+            reply_id= reply.reply_id,
             user_id=reply.user_id,
             content=reply.content,
             username = user.username,

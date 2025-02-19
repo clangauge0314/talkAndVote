@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
 
 export const useLike = () => {
     const [loading, setLoading] = useState(false);
@@ -104,6 +103,12 @@ export const useLike = () => {
             );
 
             if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "좋아요 처리 완료",
+                    text: response.data ? "대댓글에 좋아요를 표시했습니다." : "대댓글 좋아요를 취소했습니다.",
+                    confirmButtonColor: "#34D399",
+                });
                 return response.data;
             } else {
                 Swal.fire({
