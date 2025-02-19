@@ -28,10 +28,16 @@ async def create_vote(
 @router.get("/topic/{topic_id}")
 async def get_votes_by_topic(
     topic_id: int,
-    time_range: str | None = Query(None, enum=["1h", "6h", "1d", "1w", "1m"]),  # ✅ 선택적 필터링
+    time_range: str = Query("1d", description="조회할 기간 (예: 1h, 6h, 1d, 1w, 1m, 2d, 3w)"),
+    interval: str = Query("1h", description="데이터를 그룹화할 단위 시간 (예: 5m, 1h, 6h, 1d)"),
     db: AsyncSession = Depends(get_db)
 ):
-    votes = await VoteService.get_vote(db, topic_id, time_range)
+    """
+    특정 주제의 투표 데이터를 가져옴.
+    - `time_range`: 조회할 기간 (예: `1h`, `3d`, `2w`)
+    - `interval`: 데이터를 그룹화할 단위 시간 (예: `5m`, `1h`, `1d`)
+    """
+    votes = await VoteService.get_vote(db, topic_id,interval, time_range)
     return votes
 
 # ✅ 3. 특정 유저의 투표 내역 조회 (GET /vote/user/{user_id})

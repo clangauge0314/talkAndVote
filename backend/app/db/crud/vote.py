@@ -15,34 +15,10 @@ class VoteCrud:
         return vote
 
     @staticmethod
-    async def get_votes_by_topic(db: AsyncSession, topic_id: int, time_range: str | None = None):
+    async def get_votes_by_topic(db: AsyncSession, topic_id: int):
         """ 특정 주제의 투표 데이터를 시간별로 가져오기 """
-
-        now = datetime.now(timezone.utc)
-        time_map = {
-            "1h": now - timedelta(hours=1),
-            "6h": now - timedelta(hours=6),
-            "1d": now - timedelta(days=1),
-            "1w": now - timedelta(weeks=1),
-            "1m": now - timedelta(days=30),
-        }
-        start_time = time_map.get(time_range)
-
-        # ✅ MySQL에서 `date_trunc` 대신 `DATE_FORMAT()` 사용
-        query = select(
-            text("DATE_FORMAT(votes.created_at, '%Y-%m-%d %H:00:00') AS time"),
-            Vote.vote_index,
-            func.count(Vote.vote_id).label("vote_count")
-        ).where(Vote.topic_id == topic_id)
-
-        # ✅ time_range가 있으면 기간 필터 추가
-        if start_time:
-            query = query.where(Vote.created_at >= start_time)
-
-        query = query.group_by(text("time"), Vote.vote_index).order_by(text("time"))
-
-        result = await db.execute(query)
-        return result.fetchall()
+        result = await db.execute(select(Vote).filter(Vote.topic_id == topic_id))
+        return result.scalars().all()
     
     @staticmethod
     async def get_votes_by_user(db: AsyncSession, user_id: int):
@@ -56,3 +32,14 @@ class VoteCrud:
             select(Vote).filter((Vote.topic_id == topic_id) & (Vote.user_id == user_id))
         )
         return result.scalar_one_or_none()  # 투표 기록이 없으면 None 반환
+
+
+    @staticmethod
+    async def get_votes_in_range(db: AsyncSession,topic_id:int ,start_time: datetime):
+        now = datetime.now(timezone.utc)
+        
+        query = select(Vote).where(Vote.created_at.between(start_time, now)).filter(Vote.topic_id == topic_id)
+        result = await db.execute(query)
+        votes = result.scalars().all()
+        
+        return votes
