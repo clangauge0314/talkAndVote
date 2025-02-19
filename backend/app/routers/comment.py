@@ -19,6 +19,5 @@ async def get_comment_router(topic_id:int, user_id: int = Depends(get_user_id_op
     return result
 
 @router.delete("/comment/{comment_id}")
-async def delete_comment_router(comment_id:int, db: AsyncSession = Depends(get_db)):
+async def delete_comment_router(comment_id:int, user_id: int = Depends(get_user_id_optional),db: AsyncSession = Depends(get_db)):
     result = await CommentCrud.delete(db=db, comment_id=comment_id)
-    return result

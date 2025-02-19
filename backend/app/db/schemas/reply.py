@@ -18,3 +18,5 @@ class ReplySchemas(ReplyBase):
         
 class ReplyResponse(ReplySchemas):
     username:str
+    like_count: int = 0
+    has_liked: bool = False

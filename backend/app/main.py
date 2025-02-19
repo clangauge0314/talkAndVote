@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
 from app.db.database import Base, async_engine, get_db
-from app.routers import user, auth, profile, topic, like, comment, vote
+from app.routers import user, auth, profile, topic, like, comment, vote, reply
 from app.core.jwt_handler import create_access_token, create_refresh_token, verify_token
-from app.db.crud.user import UserCrud
+from app.db.crud import UserCrud
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
@@ -77,6 +77,7 @@ app.include_router(topic.router)
 app.include_router(like.router)
 app.include_router(comment.router)
 app.include_router(vote.router)
+app.include_router(reply.router)
 
 
 if __name__ == "__main__":

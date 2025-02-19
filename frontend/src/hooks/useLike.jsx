@@ -29,11 +29,10 @@ export const useLike = () => {
             );
 
             if (response.status === 200) {
-                const isLiked = response.data.is_liked;
                 Swal.fire({
                     icon: "success",
                     title: "좋아요 처리 완료",
-                    text: isLiked ? "토픽에 좋아요를 표시했습니다." : "토픽 좋아요를 취소했습니다.",
+                    text: response.data ? "토픽에 좋아요를 표시했습니다." : "토픽 좋아요를 취소했습니다.",
                     confirmButtonColor: "#34D399",
                 });
                 return response.data;
@@ -71,11 +70,10 @@ export const useLike = () => {
             );
 
             if (response.status === 200) {
-                const isLiked = response.data.is_liked;
                 Swal.fire({
                     icon: "success",
                     title: "좋아요 처리 완료",
-                    text: isLiked ? "댓글에 좋아요를 표시했습니다." : "댓글 좋아요를 취소했습니다.",
+                    text: response.data ? "댓글에 좋아요를 표시했습니다." : "댓글 좋아요를 취소했습니다.",
                     confirmButtonColor: "#34D399",
                 });
                 return response.data;

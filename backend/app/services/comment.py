@@ -20,8 +20,6 @@ class CommentService:
         like_count = await LikeCrud.get_comment_like_count(db,comment.comment_id)
         user = await UserCrud.get(db=db, user_id=comment.user_id)
 
-        
-    
 
         topic_response = CommentResponse(
             comment_id= comment.comment_id,
