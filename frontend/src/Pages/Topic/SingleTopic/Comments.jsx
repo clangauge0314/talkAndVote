@@ -3,27 +3,45 @@ import { Heart } from 'lucide-react';
 import classNames from 'classnames';
 
 const Comments = ({ 
-  comments = [],
+  comments = [], 
   currentPage, 
   totalPages, 
   onPageChange, 
   onSubmitComment, 
-  onLikeComment,
+  onLikeComment, 
   loading 
 }) => {
   const [newComment, setNewComment] = useState('');
+  const [localComments, setLocalComments] = useState(comments);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
+
     onSubmitComment(newComment);
     setNewComment('');
+  };
+
+  const handleLike = (commentId) => {
+    setLocalComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.comment_id === commentId
+          ? {
+              ...comment,
+              has_liked: !comment.has_liked,
+              like_count: comment.has_liked ? comment.like_count - 1 : comment.like_count + 1,
+            }
+          : comment
+      )
+    );
+
+    onLikeComment(commentId);
   };
 
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">댓글</h2>
-      
+
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
           value={newComment}
@@ -49,35 +67,36 @@ const Comments = ({
       </form>
 
       <div className="space-y-6">
-        {Array.isArray(comments) && comments.map((comment) => (
-          <div key={comment.comment_id} className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-medium text-gray-800">{comment.user_id}</p>
-                <p className="text-sm text-gray-500">
-                  {new Date(comment.created_at).toLocaleString('ko-KR')}
-                </p>
-              </div>
-              <button
-                onClick={() => onLikeComment(comment.comment_id)}
-                className={classNames(
-                  "flex items-center space-x-1 text-sm transition-all",
-                  comment.has_liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
-                )}
-              >
-                <Heart 
+        {Array.isArray(localComments) && localComments.length > 0 ? (
+          localComments.map((comment) => (
+            <div key={comment.comment_id} className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-gray-800">{comment.username}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(comment.created_at).toLocaleString('ko-KR')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleLike(comment.comment_id)}
                   className={classNames(
-                    "w-5 h-5",
-                    comment.has_liked ? "fill-emerald-500" : "fill-none"
+                    "flex items-center space-x-1 text-sm transition-all",
+                    comment.has_liked ? "text-emerald-500" : "text-gray-500 hover:text-emerald-500"
                   )}
-                />
-                <span>{comment.like_count || 0}</span>
-              </button>
+                >
+                  <Heart 
+                    className={classNames(
+                      "w-5 h-5",
+                      comment.has_liked ? "fill-emerald-500" : "fill-none"
+                    )}
+                  />
+                  <span>{comment.like_count || 0}</span>
+                </button>
+              </div>
+              <p className="mt-2 text-gray-700">{comment.content}</p>
             </div>
-            <p className="mt-2 text-gray-700">{comment.content}</p>
-          </div>
-        ))}
-        {(!comments || comments.length === 0) && (
+          ))
+        ) : (
           <p className="text-center text-gray-500">아직 댓글이 없습니다.</p>
         )}
       </div>
@@ -104,4 +123,4 @@ const Comments = ({
   );
 };
 
-export default Comments; 
+export default Comments;

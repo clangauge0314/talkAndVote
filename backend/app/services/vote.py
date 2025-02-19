@@ -30,7 +30,7 @@ class VoteService:
         
         time_filter, time_format = time_filters.get(time_range, (None, "%Y-%m-%d %H:%M:%S"))  # 기본값: 초 단위
 
-        votes = await VoteCrud.get_votes_by_topic(db, topic_id)
+        votes = await VoteCrud.get_votes_by_topic(db, topic_id, time_range)
 
         data = {}
 
@@ -66,7 +66,7 @@ class VoteService:
 
         for i in range(num_votes):
             # ✅ 랜덤한 시간대 설정 (최근 30일 내)
-            random_time = now - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
+            random_time = now - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23), minutes=random.randint(0, 59), seconds=random.randint(0, 59))
 
             # ✅ 랜덤한 사용자 ID 및 선택지
             vote_index = random.randint(0, 3)  # 최대 4개의 투표 옵션 중 하나 선택
