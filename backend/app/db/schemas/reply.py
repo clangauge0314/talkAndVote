@@ -8,10 +8,13 @@ class ReplyBase(BaseModel):
 class ReplyCreate(ReplyBase):
     pass
 
-class ReplyResponse(ReplyBase):
+class ReplySchemas(ReplyBase):
     reply_id: int
     user_id: int
     created_at: datetime
 
     class Config:
         from_attributes = True
+        
+class ReplyResponse(ReplySchemas):
+    username:str

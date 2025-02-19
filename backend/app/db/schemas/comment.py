@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+from app.db.schemas.reply import ReplyResponse
+
 class CommentBase(BaseModel):
     topic_id: int
     content: str
@@ -18,10 +20,8 @@ class CommentSchemas(CommentBase):
     class Config:
         from_attributes = True
         
-class CommentResponse(CommentBase):
-    comment_id: int
-    user_id: int
+class CommentResponse(CommentSchemas):
     username: str
     like_count: int = 0
     has_liked: bool = False
-    created_at: datetime
+    reply: list[ReplyResponse]

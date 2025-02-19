@@ -4,6 +4,7 @@ from app.db.crud.comment import CommentCrud
 from app.db.crud.like import LikeCrud
 from app.db.schemas.comment import CommentResponse
 from app.db.crud.user import UserCrud
+from backend.app.db.crud.reply import ReplyCrud
 
 class CommentService:
     @staticmethod
@@ -44,7 +45,7 @@ class CommentService:
         like_count = await LikeCrud.get_comment_like_count(db,comment.comment_id)
         user = await UserCrud.get(db=db, user_id=comment.user_id)
 
-    
+        # replys = await ReplyCrud.get_by_comment(db, comment_i)
     
 
         topic_response = CommentResponse(
