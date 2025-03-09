@@ -3,13 +3,13 @@ from sqlalchemy.future import select
 from app.db.models import Reply
 from app.db.schemas.reply import ReplyCreate
 
+
 class ReplyCrud:
-    
-    
+
     @staticmethod
     async def get(db: AsyncSession, reply_id: int):
         return await db.get(Reply, reply_id)
-    
+
     @staticmethod
     async def create(db: AsyncSession, reply_data: ReplyCreate, user_id: int):
         reply = Reply(user_id=user_id, **reply_data.model_dump())
@@ -17,7 +17,17 @@ class ReplyCrud:
         await db.commit()
         await db.refresh(reply)
         return reply
-    
+
+    @staticmethod
+    async def update(db: AsyncSession, reply_id: int, reply_data: ReplyCreate):
+        reply = await db.get(Reply, reply_id)
+        if reply:
+            for key, value in reply_data.model_dump().items():
+                setattr(reply, key, value)
+            await db.commit()
+            await db.refresh(reply)
+        return reply
+
     @staticmethod
     async def get_by_comment(db: AsyncSession, comment_id: int):
         result = await db.execute(select(Reply).filter(Reply.comment_id == comment_id))
