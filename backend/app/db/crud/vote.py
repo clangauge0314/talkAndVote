@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func, text
 from app.db.models import Vote
 from app.db.schemas.vote import VoteCreate
+
 
 class VoteCrud:
     @staticmethod
@@ -16,10 +18,10 @@ class VoteCrud:
 
     @staticmethod
     async def get_votes_by_topic(db: AsyncSession, topic_id: int):
-        """ 특정 주제의 투표 데이터를 시간별로 가져오기 """
+        """특정 주제의 투표 데이터를 시간별로 가져오기"""
         result = await db.execute(select(Vote).filter(Vote.topic_id == topic_id))
         return result.scalars().all()
-    
+
     @staticmethod
     async def get_votes_by_user(db: AsyncSession, user_id: int):
         result = await db.execute(select(Vote).filter(Vote.user_id == user_id))
@@ -33,14 +35,17 @@ class VoteCrud:
         )
         return result.scalar_one_or_none()  # 투표 기록이 없으면 None 반환
 
-
     @staticmethod
-    async def get_votes_in_range(db: AsyncSession,topic_id:int ,delta: timedelta):
-        now = datetime.now(timezone.utc)
+    async def get_votes_in_range(db: AsyncSession, topic_id: int, delta: timedelta):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
         start_time = now - delta
-        
-        query = select(Vote).where(Vote.created_at.between(start_time, now)).filter(Vote.topic_id == topic_id)
+
+        query = (
+            select(Vote)
+            .where(Vote.created_at.between(start_time, now))
+            .filter(Vote.topic_id == topic_id)
+        )
         result = await db.execute(query)
         votes = result.scalars().all()
-        
+
         return votes

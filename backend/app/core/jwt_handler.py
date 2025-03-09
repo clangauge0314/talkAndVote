@@ -2,7 +2,9 @@
 
 import os
 import uuid
+from zoneinfo import ZoneInfo
 import jwt
+from fastapi import HTTPException
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from app.core.config import Config
@@ -20,7 +22,7 @@ async def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_token(uid: int, expires_delta: timedelta, **kwargs):
     to_encode = kwargs.copy()
-    expire = datetime.now(timezone.utc) + expires_delta  # UTC 시간대 사용
+    expire = datetime.now(ZoneInfo("Asia/Seoul")) + expires_delta
     to_encode.update({"exp": expire, "uid": uid})
     encoded_jwt = jwt.encode(
         to_encode, Config.SECRET_KEY, algorithm=Config.JWT_ALGORITHM
@@ -33,11 +35,16 @@ def create_access_token(uid: int):
 
 
 def create_refresh_token(uid: int):
-    return create_token(uid=uid, jti=str(uuid.uuid4()), expires_delta=Config.REFRESH_TOKEN_EXPIRE)
+    return create_token(
+        uid=uid, jti=str(uuid.uuid4()), expires_delta=Config.REFRESH_TOKEN_EXPIRE
+    )
+
 
 def decode_token(token):
     try:
-        payload = jwt.decode(token, Config.SECRET_KEY, algorithms=[Config.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, Config.SECRET_KEY, algorithms=[Config.JWT_ALGORITHM]
+        )
         return payload
     except jwt.ExpiredSignatureError:
         return None
@@ -51,7 +58,8 @@ def verify_token(token):
         return None
     user_id = payload["uid"]
     exp = payload["exp"]
-    if datetime.fromtimestamp(exp, timezone.utc) < datetime.now(timezone.utc):
+    if datetime.fromtimestamp(exp, ZoneInfo("Asia/Seoul")) < datetime.now(
+        ZoneInfo("Asia/Seoul")
+    ):
         return None
     return user_id
-

@@ -1,23 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
 import { Heart, CheckCircle, Calendar } from "lucide-react";
 import classNames from "classnames";
 import { useTopic } from "../../../hooks/useTopic";
 import { useLike } from "../../../hooks/useLike";
 import { useVote } from "../../../hooks/useVote";
 import { useComment } from "../../../hooks/useComment";
-import Comments from "./Comments";
 
-const timeFrames = ["1H", "6H", "1D", "1W", "1M", "ALL"];
+import Comments from "./Comments";
+import Chart from './Chart';
 
 const voteColors = {
   2: [
@@ -53,8 +44,9 @@ const SingleTopic = () => {
   const [userVoteIndex, setUserVoteIndex] = useState(null);
   const [comments, setComments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [chartMetric, setChartMetric] = useState('count');
+  const [chartLoading, setChartLoading] = useState(false);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -88,62 +80,52 @@ const SingleTopic = () => {
   }, [id, getTopicById]);
 
   const fetchTopicVotes = async (frame) => {
-    const voteData = await getTopicVotes(id, frame);
-    if (voteData && topic) {
-      const groupedData = voteData.reduce((acc, vote) => {
-        const date = new Date(vote.created_at);
-        let timeKey;
-        
-        switch(frame) {
-          case '1H':
-            timeKey = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-            break;
-          case '6H':
-          case '1D':
-            timeKey = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-            break;
-          case '1W':
-            timeKey = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-            break;
-          case '1M':
-            timeKey = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-            break;
-          default:
-            timeKey = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-        }
+    setChartLoading(true);
+    try {
+      const voteData = await getTopicVotes(id, frame);
+      
+      if (voteData && topic) {
+        const lastDataPoint = Object.values(voteData)[Object.keys(voteData).length - 1];
+        const voteResults = Object.values(lastDataPoint).map(v => v.count || 0);
+        const totalVote = voteResults.reduce((sum, count) => sum + count, 0);
 
-        if (!acc[timeKey]) {
-          acc[timeKey] = {
-            time: timeKey,
-            votes_0: 0,
-            votes_1: 0,
-            votes_2: 0,
-            votes_3: 0,
+        const chartData = Object.entries(voteData).map(([timestamp, data]) => {
+          return {
+            time: data.formattedTime,
+            total: Object.values(data).reduce((sum, v) => {
+              if (typeof v === 'object' && (v.count !== undefined)) {
+                return sum + (v.count || 0);
+              }
+              return sum;
+            }, 0),
+            ...Object.entries(data).reduce((obj, [idx, values]) => {
+              if (typeof values === 'object' && (values.count !== undefined)) {
+                return {
+                  ...obj,
+                  [`count_${idx}`]: values.count || 0,
+                  [`percent_${idx}`]: values.percent || 0
+                };
+              }
+              return obj;
+            }, {})
           };
-        }
-        acc[timeKey][`votes_${vote.vote_index}`]++;
-        return acc;
-      }, {});
+        });
 
-      const chartData = Object.values(groupedData).sort((a, b) => {
-        return new Date(a.time) - new Date(b.time);
-      });
-
-      setTopic(prevTopic => ({
-        ...prevTopic,
-        vote_trend_data: chartData,
-        vote_results: topic.vote_options.map((_, index) => 
-          voteData.filter(vote => vote.vote_index === index).length
-        ),
-        total_vote: voteData.length,
-      }));
+        setTopic(prevTopic => ({
+          ...prevTopic,
+          vote_trend_data: chartData,
+          vote_results: voteResults,
+          total_vote: totalVote,
+        }));
+      }
+    } finally {
+      setChartLoading(false);
     }
   };
 
   const fetchComments = async () => {
     const result = await getComments(id);
     if (result) {
-      console.log(result)
       setComments(result || []);
     } else {
       setComments([]);
@@ -217,7 +199,7 @@ const SingleTopic = () => {
   const colors = voteColors[optionCount];
 
   return (
-    <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-lg p-8 border border-gray-200 transition-all duration-300 hover:shadow-2xl">
+    <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-lg p-8 border border-gray-200 transition-all duration-300 hover:shadow-2xl">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-emerald-500">{title}</h1>
         <button
@@ -239,57 +221,16 @@ const SingleTopic = () => {
 
       <p className="text-gray-600 mb-6">{description}</p>
 
-      <div className="bg-gray-100 rounded-lg p-5 shadow-inner mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">📊 투표 트렌드</h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={topic.vote_trend_data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="time"
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              tick={{ fontSize: 12 }}
-              allowDecimals={false}
-            />
-            <Tooltip 
-              formatter={(value, name) => {
-                const optionIndex = name.split('_')[1];
-                return [`${value}표`, vote_options[optionIndex]];
-              }}
-            />
-            {vote_options.map((_, index) => (
-              <Line
-                key={index}
-                type="monotone"
-                dataKey={`votes_${index}`}
-                name={`votes_${index}`}
-                stroke={colors[index].bg}
-                strokeWidth={2}
-                dot={{ fill: colors[index].bg, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="flex justify-center space-x-3 mb-6">
-        {timeFrames.map((frame) => (
-          <button
-            key={frame}
-            onClick={() => handleTimeFrameClick(frame)}
-            className={classNames(
-              "px-4 py-2 text-sm font-medium rounded-md border transition-all duration-200",
-              selectedTimeFrame === frame
-                ? "bg-emerald-500 text-white border-emerald-500 shadow-md"
-                : "border-gray-300 hover:border-emerald-500"
-            )}
-          >
-            {frame}
-          </button>
-        ))}
-      </div>
+      <Chart
+        topicId={id}
+        voteOptions={vote_options}
+        colors={colors}
+        selectedTimeFrame={selectedTimeFrame}
+        chartMetric={chartMetric}
+        chartLoading={chartLoading}
+        onTimeFrameChange={handleTimeFrameClick}
+        onMetricChange={setChartMetric}
+      />
 
       <div className="flex items-center text-gray-500 text-sm mt-6">
         <Calendar className="w-5 h-5 mr-2" />
