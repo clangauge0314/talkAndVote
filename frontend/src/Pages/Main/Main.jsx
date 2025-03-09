@@ -180,13 +180,6 @@ const Main = () => {
                         {topic.vote_options.map((option, index) => {
                           const optionCount = topic.vote_options.length;
                           const colors = voteColors[optionCount];
-
-                          console.log(`Topic ${topic.topic_id} - Option ${index}:`, {
-                            has_voted: topic.has_voted,
-                            user_vote_index: topic.user_vote_index,
-                            is_selected: topic.user_vote_index === index,
-                          });
-
                           return (
                             <button
                               key={index}

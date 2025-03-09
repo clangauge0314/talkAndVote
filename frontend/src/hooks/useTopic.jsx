@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
 
 export const useTopic = () => {
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const handleAuthError = async (error) => {
         if (error.response?.status === 401) {
@@ -26,7 +24,6 @@ export const useTopic = () => {
             const response = await axios.get(`${import.meta.env.VITE_API_URL}/topics`, { withCredentials: true });
 
             if (response.status === 200 && response.data) {
-                console.log(response.data)
                 return response.data;
             } else {
                 Swal.fire({
@@ -57,7 +54,6 @@ export const useTopic = () => {
             const response = await axios.get(`${import.meta.env.VITE_API_URL}/topic/${topicId}`, { withCredentials: true });
 
             if (response.status === 200 && response.data) {
-                console.log(response.data)
                 return response.data;
             } else {
                 Swal.fire({
@@ -83,15 +79,37 @@ export const useTopic = () => {
     };
 
     const getTopicVotes = async (topicId, timeRange = "ALL") => {
-        try {
+        try {            
+            const convertedTimeRange = timeRange === "1M" ? "30d" : timeRange;
+            const timeRangeParam = convertedTimeRange === "ALL" 
+                ? "" 
+                : `time_range=${convertedTimeRange.toLowerCase()}`;
+            
+            let interval;
+            switch (timeRange) {
+                case '1H': interval = '1m'; break;
+                case '6H': interval = '1m'; break;
+                case '1D': interval = '5m'; break;
+                case '1W': interval = '30m'; break;
+                case '1M': interval = '3h'; break;
+                case 'ALL': interval = '12h'; break;
+                default: interval = '1m';
+            }
+            
             const response = await axios.get(
-                `${import.meta.env.VITE_API_URL}/vote/topic/${topicId}?time_range=${timeRange.toLowerCase()}`,
-                { withCredentials: true }
+                `${import.meta.env.VITE_API_URL}/vote/topic/${topicId}?${timeRangeParam}&interval=${interval}`
             );
 
             if (response.status === 200 && response.data) {
-                console.log(`📊 [${timeRange}] 투표 데이터:`, response.data);
-                return response.data;
+                const formattedData = Object.entries(response.data).reduce((acc, [timestamp, data]) => {
+                    const date = new Date(timestamp);
+                    const formattedTime = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    acc[timestamp] = data;
+                    acc[timestamp].formattedTime = formattedTime;
+                    return acc;
+                }, {});
+
+                return formattedData;
             } else {
                 Swal.fire({
                     icon: "error",
@@ -102,6 +120,7 @@ export const useTopic = () => {
                 return null;
             }
         } catch (error) {
+            console.log(error);
             Swal.fire({
                 icon: "error",
                 title: "오류 발생",
