@@ -26,6 +26,7 @@ class CommentCrud:
                 setattr(comment, key, value)
             await db.commit()
             await db.refresh(comment)
+        return comment
 
     @staticmethod
     async def get_by_topic(db: AsyncSession, topic_id: int):

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MessageCircle, X, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, X, Send, Trash2, Edit } from "lucide-react";
 import classNames from "classnames";
 import { useLike } from "../../../hooks/useLike";
 import { useReply } from "../../../hooks/useReply";
@@ -76,49 +76,162 @@ const ReplyForm = ({ onSubmit, onCancel }) => {
 };
 
 const Reply = ({ reply, onDelete, refreshComments }) => {
-  const { toggleReplyLike } = useLike();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(reply.content);
   const { user } = useAuth();
+  const { toggleReplyLike } = useLike();
+  const { updateReply } = useReply();
 
-  const handleLike = async () => {
-    const result = await toggleReplyLike(reply.reply_id);
-    if (result !== undefined) {
+  const handleEdit = async () => {
+    const success = await updateReply(reply.reply_id, editContent);
+    if (success) {
+      setIsEditing(false);
       refreshComments();
     }
   };
 
-  const handleDelete = async () => {
-    const result = await Swal.fire({
-      title: '대댓글을 삭제하시겠습니까?',
-      text: "삭제된 대댓글은 복구할 수 없습니다.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      cancelButtonColor: '#9CA3AF',
-      confirmButtonText: '삭제',
-      cancelButtonText: '취소'
-    });
-
-    if (result.isConfirmed) {
-      onDelete(reply.reply_id);
+  const handleLike = async () => {
+    const result = await toggleReplyLike(reply.reply_id);
+    if (result !== null) {
+      refreshComments();
     }
   };
 
   return (
-    <div className="pl-12 mt-3">
-      <div className="flex items-start justify-between bg-gray-50 p-4 rounded-lg">
-        <div className="flex items-start space-x-3">
-          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-            <span className="text-emerald-600 font-medium text-sm">
-              {reply.username.charAt(0).toUpperCase()}
+    <div className="flex items-start justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
+      <div className="flex items-start space-x-3 flex-grow">
+        <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center">
+          <span className="text-emerald-600 font-medium text-sm">
+            {reply.username.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <p className="font-medium text-gray-800 text-sm">{reply.username}</p>
+            <p className="text-xs text-gray-500">
+              {new Date(reply.created_at).toLocaleString()}
+            </p>
+          </div>
+          {isEditing ? (
+            <div className="mt-2">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full p-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                rows="2"
+              />
+              <div className="flex justify-end space-x-2 mt-2">
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleEdit}
+                  disabled={!editContent.trim()}
+                  className="px-2 py-1 text-xs rounded-md bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+                >
+                  수정
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-700 text-sm mt-1">{reply.content}</p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={handleLike}
+          className={classNames(
+            "flex items-center space-x-1 px-2 py-1 rounded-full transition-all duration-200",
+            reply.has_liked
+              ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
+              : "text-gray-500 hover:bg-gray-50"
+          )}
+        >
+          <Heart
+            className={classNames(
+              "w-4 h-4 transition-colors duration-200",
+              reply.has_liked
+                ? "fill-emerald-500 stroke-emerald-500"
+                : "fill-none stroke-current"
+            )}
+          />
+          <span className="text-xs font-medium">{reply.like_count}</span>
+        </button>
+        {user && user.user_id === reply.user_id && (
+          <>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-1 text-gray-400 hover:text-emerald-500 transition-colors"
+              title="답글 수정"
+            >
+              <Edit className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => onDelete(reply.reply_id)}
+              className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+              title="답글 삭제"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const Comment = ({ comment, onDelete, refreshComments }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const { user } = useAuth();
+  const { toggleCommentLike } = useLike();
+  const { updateComment } = useComment();
+  const { createReply, deleteReply } = useReply();
+
+  const handleEdit = async () => {
+    const success = await updateComment(comment.comment_id, editContent);
+    if (success) {
+      setIsEditing(false);
+      refreshComments();
+    }
+  };
+
+  const handleReplySubmit = async (content) => {
+    const result = await createReply(comment.comment_id, content);
+    if (result) {
+      setReplyingTo(null);
+      refreshComments();
+    }
+  };
+
+  const handleReplyDelete = async (replyId) => {
+    const result = await deleteReply(replyId);
+    if (result) {
+      refreshComments();
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-start justify-between bg-white p-4 rounded-lg border border-gray-200">
+        <div className="flex items-start space-x-3 flex-grow">
+          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+            <span className="text-emerald-600 font-medium">
+              {comment.username.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="flex-1">
             <div className="flex items-center space-x-2">
-              <p className="font-semibold text-gray-800 text-sm">
-                {reply.username}
+              <p className="font-semibold text-gray-800">
+                {comment.username}
               </p>
-              <p className="text-xs text-gray-500">
-                {new Date(new Date(reply.created_at).getTime() + 9 * 60 * 60 * 1000).toLocaleString("ko-KR", {
+              <p className="text-sm text-gray-500">
+                {new Date(new Date(comment.created_at).getTime() + 9 * 60 * 60 * 1000).toLocaleString("ko-KR", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -127,17 +240,43 @@ const Reply = ({ reply, onDelete, refreshComments }) => {
                 })}
               </p>
             </div>
-            <p className="text-gray-700 text-sm mt-1 whitespace-pre-wrap">
-              {reply.content}
-            </p>
+            {isEditing ? (
+              <div className="mt-2">
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                  rows="3"
+                />
+                <div className="flex justify-end space-x-2 mt-2">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 text-sm rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleEdit}
+                    disabled={!editContent.trim()}
+                    className="px-3 py-1 text-sm rounded-md bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+                  >
+                    수정
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                {comment.content}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={handleLike}
+            onClick={() => toggleCommentLike(comment.comment_id)}
             className={classNames(
               "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
-              reply.has_liked
+              comment.has_liked
                 ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -145,23 +284,57 @@ const Reply = ({ reply, onDelete, refreshComments }) => {
             <Heart
               className={classNames(
                 "w-5 h-5 transition-colors duration-200",
-                reply.has_liked
+                comment.has_liked
                   ? "fill-emerald-500 stroke-emerald-500"
                   : "fill-none stroke-current"
               )}
             />
-            <span className="text-sm font-medium">{reply.like_count}</span>
+            <span className="text-sm font-medium">{comment.like_count}</span>
           </button>
-          {user && user.user_id === reply.user_id && (
-            <button
-              onClick={handleDelete}
-              className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-              title="대댓글 삭제"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+          <button
+            onClick={() => setReplyingTo(comment.comment_id)}
+            className="p-1 text-gray-400 hover:text-emerald-500 transition-colors"
+            title="답글 작성"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </button>
+          {user && user.user_id === comment.user_id && (
+            <>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="p-1 text-gray-400 hover:text-emerald-500 transition-colors"
+                title="댓글 수정"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onDelete(comment.comment_id)}
+                className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                title="댓글 삭제"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
           )}
         </div>
+      </div>
+      {replyingTo === comment.comment_id && (
+        <div className="ml-12 mt-2">
+          <ReplyForm
+            onSubmit={handleReplySubmit}
+            onCancel={() => setReplyingTo(null)}
+          />
+        </div>
+      )}
+      <div className="ml-12 mt-2 space-y-2">
+        {comment.reply?.map((reply) => (
+          <Reply
+            key={reply.reply_id}
+            reply={reply}
+            onDelete={handleReplyDelete}
+            refreshComments={refreshComments}
+          />
+        ))}
       </div>
     </div>
   );
@@ -199,8 +372,7 @@ const Comments = ({
   };
 
   const handleReplySubmit = async (content) => {
-    if (!replyingTo) return;
-    const result = await createReply(replyingTo, content);
+    const result = await createReply(comment.comment_id, content);
     if (result) {
       setReplyingTo(null);
       refreshComments();
@@ -267,93 +439,12 @@ const Comments = ({
       <div className="space-y-6">
         {comments && comments.length > 0 ? (
           comments.map((comment) => (
-            <div
+            <Comment
               key={comment.comment_id}
-              className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <span className="text-emerald-600 font-medium">
-                      {comment.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800">
-                      {comment.username}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(new Date(comment.created_at).getTime() + 9 * 60 * 60 * 1000).toLocaleString("ko-KR", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleLike(comment.comment_id)}
-                    className={classNames(
-                      "flex items-center space-x-1 px-3 py-1 rounded-full transition-all duration-200",
-                      comment.has_liked
-                        ? "text-emerald-500 bg-emerald-50 hover:bg-emerald-100"
-                        : "text-gray-500 hover:bg-gray-50"
-                    )}
-                  >
-                    <Heart
-                      className={classNames(
-                        "w-5 h-5 transition-colors duration-200",
-                        comment.has_liked
-                          ? "fill-emerald-500 stroke-emerald-500"
-                          : "fill-none stroke-current"
-                      )}
-                    />
-                    <span className="text-sm font-medium">
-                      {comment.like_count}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setReplyingTo(comment.comment_id)}
-                    className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:bg-gray-50"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    <span className="text-sm font-medium">답글</span>
-                  </button>
-                  {user && user.user_id === comment.user_id && (
-                    <button
-                      onClick={() => handleCommentDelete(comment.comment_id)}
-                      className="flex items-center space-x-1 px-3 py-1 rounded-full text-gray-500 hover:text-red-500"
-                      title="댓글 삭제"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-              <p className="text-gray-700 whitespace-pre-wrap">
-                {comment.content}
-              </p>
-
-              {replyingTo === comment.comment_id && (
-                <ReplyForm
-                  onSubmit={handleReplySubmit}
-                  onCancel={() => setReplyingTo(null)}
-                />
-              )}
-
-              {comment.reply?.map((reply) => (
-                <Reply
-                  key={reply.reply_id}
-                  reply={reply}
-                  currentUserId={currentUserId}
-                  onDelete={handleReplyDelete}
-                  refreshComments={refreshComments}
-                />
-              ))}
-            </div>
+              comment={comment}
+              onDelete={handleCommentDelete}
+              refreshComments={refreshComments}
+            />
           ))
         ) : (
           <div className="text-center py-10 bg-gray-50 rounded-lg">

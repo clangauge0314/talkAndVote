@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { BiSearch, BiTrendingUp } from "react-icons/bi";
-import { MdDashboard, MdLocalActivity, MdAdd } from "react-icons/md";
+import { FaRegCreditCard } from "react-icons/fa";
+import { MdDashboard, MdLocalActivity, MdAdd, MdWorkspacePremium, MdOutlineAttachMoney } from "react-icons/md";
 import Avatar from 'react-avatar';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -202,8 +203,8 @@ function Navbar({ onLoginClick, onSignupClick }) {
                   to="/ranking"
                   className="flex flex-col items-center text-white hover:text-gray-200 transition-all duration-500"
                 >
-                  <BiTrendingUp className="h-6 w-6 mb-1" />
-                  <span className="text-xs font-medium">랭킹</span>
+                  <FaRegCreditCard className="h-6 w-6 mb-1" />
+                  <span className="text-xs font-medium">멤버십 가입</span>
                 </Link>
                 <Link
                   to="/create-topic"
@@ -286,7 +287,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
                 onClick={() => setIsOpen(false)}
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
-                랭킹
+                멤버십 가입
               </Link>
               <Link
                 to="/create-topic"

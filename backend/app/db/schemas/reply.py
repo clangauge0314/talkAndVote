@@ -11,7 +11,7 @@ class ReplyCreate(ReplyBase):
     pass
 
 
-class ReplyUpdate(ReplyBase):
+class ReplyUpdate(BaseModel):
     reply_id: int
     content: str
 
