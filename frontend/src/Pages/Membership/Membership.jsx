@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth';
-import PaymentModal from '../../Components/Modal/PaymentModal/PaymentModal';
 import { useSelector } from 'react-redux';
+import PaymentModal from '../../Components/Modal/PaymentModal/PaymentModal';
 
 const MembershipCard = ({ title, color, price, topics, features, onSubscribe, currentGrade }) => {
-  const isCurrentPlan = currentGrade === title.toLowerCase();
   
   return (
     <div className={`p-6 rounded-lg shadow-xl transition-transform hover:scale-105 ${color} max-w-sm w-full mx-auto flex flex-col h-full`}>
@@ -26,7 +25,10 @@ const MembershipCard = ({ title, color, price, topics, features, onSubscribe, cu
           ))}
         </div>
       </div>
-      {isCurrentPlan ? (
+
+      
+      
+      {currentGrade?.toLowerCase() === title.toLowerCase() ? (
         <button 
           disabled
           className="w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-lg font-semibold cursor-not-allowed"
@@ -159,9 +161,9 @@ const Membership = () => {
       </div>
       <ComparisonTable />
       <PaymentModal 
-        isOpen={isModalOpen} 
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        plan={selectedPlan}
+        selectedPlan={selectedPlan}
       />
     </div>
   );
