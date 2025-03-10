@@ -1,4 +1,9 @@
-import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import { useState } from "react";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 
@@ -12,6 +17,8 @@ import Profile from "./Pages/Profile/Profile";
 import UserProfile from "./Pages/Profile/UserProfile";
 import CreateTopic from "./Pages/Topic/CreateTopic/CreateTopic";
 import SingleTopic from "./Pages/Topic/SingleTopic/SingleTopic";
+
+import Membership from "./Pages/Membership/Membership";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -44,13 +51,24 @@ const Layout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar onLoginClick={handleLoginClick} onSignupClick={handleSignupClick} />
+      <Navbar
+        onLoginClick={handleLoginClick}
+        onSignupClick={handleSignupClick}
+      />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <Outlet /> 
+        <Outlet />
       </main>
       <Footer />
-      <LoginModal isOpen={isLoginOpen} onClose={handleCloseModals} onSignupClick={handleSignupClick} />
-      <SignupModal isOpen={isSignupOpen} onClose={handleCloseModals} onLoginClick={handleLoginClick} />
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={handleCloseModals}
+        onSignupClick={handleSignupClick}
+      />
+      <SignupModal
+        isOpen={isSignupOpen}
+        onClose={handleCloseModals}
+        onLoginClick={handleLoginClick}
+      />
     </div>
   );
 };
@@ -59,12 +77,12 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <AuthProvider> 
+      <AuthProvider>
         <Layout />
       </AuthProvider>
     ),
     children: [
-      { index: true, element: <Main /> }, 
+      { index: true, element: <Main /> },
       { path: "profile", element: <Profile /> },
       { path: "profile/:username", element: <UserProfile /> },
       {
@@ -76,6 +94,14 @@ const router = createBrowserRouter([
         ),
       },
       { path: "topic/:id", element: <SingleTopic /> },
+      {
+        path: "membership",
+        element: (
+          <ProtectedRoute>
+            <Membership />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);

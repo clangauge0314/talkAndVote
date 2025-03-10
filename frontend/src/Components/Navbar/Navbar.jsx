@@ -200,7 +200,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
                   <span className="text-xs font-medium">활동내역</span>
                 </Link>
                 <Link
-                  to="/ranking"
+                  to="/membership"
                   className="flex flex-col items-center text-white hover:text-gray-200 transition-all duration-500"
                 >
                   <FaRegCreditCard className="h-6 w-6 mb-1" />
@@ -283,7 +283,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
                 활동내역
               </Link>
               <Link
-                to="/ranking"
+                to="/membership"
                 onClick={() => setIsOpen(false)}
                 className="text-white hover:bg-emerald-600 block px-3 py-2 rounded-md text-base font-medium transition-all duration-500"
               >
