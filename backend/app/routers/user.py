@@ -91,4 +91,12 @@ async def get_membership_route(
     user_id: int | None = Depends(get_user_id), db: AsyncSession = Depends(get_db)
 ):
     db_user = await UserCrud.get(db, user_id)
+
+    if db_user.membership_level == "bronze":
+        return "브론즈"
+    elif db_user.membership_level == "silver":
+        return "실버"
+    elif db_user.membership_level == "gold":
+        return "골드"
+
     return db_user.membership_level

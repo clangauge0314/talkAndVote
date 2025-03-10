@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }) => {
         `${import.meta.env.VITE_API_URL}/users/membership`,
         { withCredentials: true }
       );
-      dispatch(setMembershipGrade(response.data.grade));
+      dispatch(setMembershipGrade(response.data));
     } catch (error) {
       console.error("멤버십 정보 조회 실패:", error);
     }

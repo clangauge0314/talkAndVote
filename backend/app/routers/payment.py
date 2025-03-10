@@ -1,42 +1,40 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
-from app.core.auth import get_user_id
-from app.db.schemas.payment import CancelRequest, PaymentCreate, PaymentResponse
 from app.services.payment import PaymentService
+from app.core.portone_client import PortOneClient
+import portone_server_sdk as portone
 
 router = APIRouter()
+payment_service = PaymentService()
+portone_client = PortOneClient()
 
 
-@router.post("/payment/create", response_model=PaymentResponse)
-async def create_payment(
-    payment_data: PaymentCreate,
-    db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_user_id),
-):
+@router.post("/api/payment/complete")
+async def complete_payment(payment_id: str, db: AsyncSession = Depends(get_db)):
     """
-    결제 요청을 저장
+    결제 완료 후 PortOne과 동기화
     """
-    payment_data.user_id = user_id
-    new_payment = await PaymentService.create_payment(db, payment_data)
-    return new_payment
+    payment = await payment_service.sync_payment(db, payment_id)
+    if not payment:
+        return {"message": "결제 동기화 실패"}, 400
+    return payment
 
 
-@router.post("/payment/cancel")
-async def cancel_payment(
-    cancel_data: CancelRequest, db: AsyncSession = Depends(get_db)
-):
+@router.post("/api/payment/webhook")
+async def receive_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """
-    사용자가 결제 취소 요청 시 PortOne을 통해 처리
+    PortOne 웹훅 처리
     """
-    return await PaymentService.cancel_payment(
-        db, cancel_data.imp_uid, cancel_data.reason
-    )
+    raw_body = await request.body()
+    webhook = portone_client.verify_webhook(raw_body.decode("utf-8"), request.headers)
 
+    if isinstance(webhook, dict) or not isinstance(
+        webhook.data, portone.webhook.WebhookTransactionData
+    ):
+        return {"message": "Invalid Webhook"}, 400
 
-@router.get("/payment/verify/{imp_uid}")
-async def verify_payment(imp_uid: str, db: AsyncSession = Depends(get_db)):
-    """
-    PortOne을 통해 결제 검증 후 DB 상태 업데이트
-    """
-    return await PaymentService.verify_payment(db, imp_uid)
+    # 웹훅에서 받은 결제 ID로 동기화
+    await payment_service.sync_payment(db, webhook.data.payment_id)
+
+    return {"message": "Webhook Processed Successfully"}

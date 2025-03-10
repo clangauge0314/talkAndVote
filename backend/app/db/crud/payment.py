@@ -1,19 +1,17 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.models.payment import Payment
-from app.db.schemas.payment import PaymentCreate, PaymentUpdate
+from app.db.schemas.payment import PaymentCreate
 
 
 class PaymentCrud:
     @staticmethod
-    async def get(db: AsyncSession, payment_id: int) -> Payment | None:
-        result = await db.execute(select(Payment).filter(Payment.id == payment_id))
-        return result.scalar_one_or_none()
-
-    @staticmethod
     async def get_by_merchant_uid(
         db: AsyncSession, merchant_uid: str
     ) -> Payment | None:
+        """
+        주문 고유번호(merchant_uid)로 결제 조회
+        """
         result = await db.execute(
             select(Payment).filter(Payment.merchant_uid == merchant_uid)
         )
@@ -21,6 +19,9 @@ class PaymentCrud:
 
     @staticmethod
     async def create(db: AsyncSession, payment: PaymentCreate) -> Payment:
+        """
+        새로운 결제 정보 생성
+        """
         db_payment = Payment(**payment.model_dump())
         db.add(db_payment)
         await db.commit()
