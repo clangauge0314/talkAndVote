@@ -1,3 +1,5 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
@@ -33,6 +35,19 @@ async def create_topic_route(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
+        )
+
+    now = datetime.now(ZoneInfo("Asia/Seoul"))
+    current_month = now.replace(day=1)  # 이번 달 1일 (YYYY-MM-01)
+
+    db_topic_count = await TopicCrud.get_post_count_by_month(
+        db=db, user_id=user_id, start_of_month=current_month
+    )
+
+    if db_topic_count >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You can't create more than 5 topics in a month",
         )
 
     db_topic = await TopicCrud.create(db=db, topic_data=topic, user_id=user_id)

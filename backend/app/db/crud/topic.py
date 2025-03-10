@@ -1,11 +1,14 @@
+from datetime import datetime
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.models.topic import Topic
 from app.db.schemas.topic import TopicCreate
 
+
 class TopicCrud:
     @staticmethod
-    async def create(db: AsyncSession, topic_data: TopicCreate, user_id:int) -> Topic:
+    async def create(db: AsyncSession, topic_data: TopicCreate, user_id: int) -> Topic:
         topic_dict = topic_data.model_dump()
 
         # 2. user_id 추가
@@ -34,4 +37,17 @@ class TopicCrud:
             await db.delete(topic)
             await db.commit()
         return topic
-    
+
+    @staticmethod
+    async def get_post_count_by_month(
+        db: AsyncSession, user_id: int, start_of_month: datetime
+    ) -> int:
+        """
+        ✅ 특정 유저가 이번 달 작성한 게시물 개수를 조회
+        """
+        result = await db.execute(
+            select(func.count()).where(
+                (Topic.user_id == user_id) & (Topic.created_at >= start_of_month)
+            )
+        )
+        return result.scalar() or 0  # 만약 None이면 0 반환
