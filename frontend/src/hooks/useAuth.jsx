@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [lastVerified, setLastVerified] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -113,6 +114,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setUser(response.data);
       setLastVerified(now);
+      setIsLoading(false);
       return true;
 
     } catch (error) {
@@ -130,6 +132,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
       setLastVerified(0);
+      setIsLoading(false);
       return false;
     }
   };
@@ -149,6 +152,7 @@ export const AuthProvider = ({ children }) => {
         signup,
         logout,
         verifyJWT,
+        isLoading,
       }}
     >
       {children}

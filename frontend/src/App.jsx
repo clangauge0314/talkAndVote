@@ -21,12 +21,21 @@ import SingleTopic from "./Pages/Topic/SingleTopic/SingleTopic";
 import Membership from "./Pages/Membership/Membership";
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     alert("로그인이 필요한 서비스입니다. 로그인 후 진행해주세요.");
     return <Navigate to="/" replace />;
   }
+
   return children;
 };
 
@@ -50,15 +59,17 @@ const Layout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar
-        onLoginClick={handleLoginClick}
-        onSignupClick={handleSignupClick}
-      />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <Outlet />
-      </main>
-      <Footer />
+    <>
+      <div className="flex flex-col min-h-screen">
+        <Navbar
+          onLoginClick={handleLoginClick}
+          onSignupClick={handleSignupClick}
+        />
+        <main className="flex-grow container mx-auto px-4 py-8">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
       <LoginModal
         isOpen={isLoginOpen}
         onClose={handleCloseModals}
@@ -69,18 +80,22 @@ const Layout = () => {
         onClose={handleCloseModals}
         onLoginClick={handleLoginClick}
       />
-    </div>
+    </>
+  );
+};
+
+const AppWithProvider = () => {
+  return (
+    <AuthProvider>
+      <Layout />
+    </AuthProvider>
   );
 };
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <AuthProvider>
-        <Layout />
-      </AuthProvider>
-    ),
+    element: <AppWithProvider />,
     children: [
       { index: true, element: <Main /> },
       { path: "profile", element: <Profile /> },
