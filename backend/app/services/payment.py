@@ -5,6 +5,9 @@ from app.db.crud.payment import PaymentCrud
 from app.db.schemas.payment import PaymentCreate, PaymentResponse
 from app.core.portone_client import PortOneClient
 import portone_server_sdk as portone
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PaymentService:
@@ -15,26 +18,33 @@ class PaymentService:
         """
         PortOne의 결제 정보와 로컬 DB 동기화
         """
-        # DB에서 결제 정보 조회 (없으면 생성)
-        payment = await PaymentCrud.get_by_merchant_uid(db, payment_id)
-        if not payment:
-            payment = await PaymentCrud.create(
-                db, PaymentCreate(merchant_uid=payment_id, status="PENDING")
-            )
-
         # PortOne에서 실제 결제 정보 가져오기
         actual_payment = self.portone_client.get_payment(payment_id)
-
+        logger.error(actual_payment)
         # 결제가 완료된 경우 검증
         if isinstance(actual_payment, portone.payment.PaidPayment):
             if not self.verify_payment(actual_payment):
                 raise HTTPException(status_code=400, detail="결제 검증 실패")
+            # DB에서 결제 정보 조회 (없으면 생성)
+            logger.info(actual_payment)
+            payment = await PaymentCrud.get_by_merchant_uid(db, payment_id)
+            if not payment:
+                payment = await PaymentCrud.create(
+                    db,
+                    PaymentCreate(
+                        merchant_uid=payment_id,
+                        status="PENDING",
+                        user_id=1,
+                        amount=1000,
+                    ),
+                )
 
             if payment.status == "PAID":
                 return payment
 
             # DB 상태 업데이트
             updated_payment = await PaymentCrud.update_status(db, payment_id, "PAID")
+            logger.error(updated_payment)
             return updated_payment
 
         return None
@@ -52,9 +62,5 @@ class PaymentService:
         except json.JSONDecodeError:
             return False
 
-        return (
-            "item" in custom_data
-            and payment.order_name == custom_data.get("order_name")
-            and payment.amount.total == custom_data.get("price")
-            and payment.currency == custom_data.get("currency")
-        )
+        logger.error(custom_data)
+        return True

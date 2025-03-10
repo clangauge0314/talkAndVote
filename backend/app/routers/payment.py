@@ -4,6 +4,7 @@ from app.db.database import get_db
 from app.services.payment import PaymentService
 from app.core.portone_client import PortOneClient
 import portone_server_sdk as portone
+from app.core.auth import get_user_id
 
 router = APIRouter()
 payment_service = PaymentService()
@@ -11,7 +12,10 @@ portone_client = PortOneClient()
 
 
 @router.post("/api/payment/complete")
-async def complete_payment(payment_id: str, db: AsyncSession = Depends(get_db)):
+async def complete_payment(
+    payment_id: str,
+    db: AsyncSession = Depends(get_db),
+):
     """
     결제 완료 후 PortOne과 동기화
     """

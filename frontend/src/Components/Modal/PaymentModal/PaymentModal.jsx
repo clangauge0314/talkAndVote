@@ -13,58 +13,90 @@ const PaymentModal = ({ isOpen, onClose, selectedPlan }) => {
     status: "IDLE",
   });
 
-  const handlePayment = async () => {
+  const handlePayment = async (e) => {
     try {
+      e.preventDefault();
+      console.log('Payment process started:', { selectedPlan });
+      
       setPaymentStatus({ status: "PENDING" });
       const paymentId = randomId();
+      console.log('Generated paymentId:', paymentId);
 
       const price =
         selectedPlan.price === "무료"
           ? 0
           : parseInt(selectedPlan.price.replace(/[^0-9]/g, ""));
+      console.log('Calculated price:', price);
+
+      console.log('PortOne Config:', {
+        storeId: import.meta.env.VITE_STORE_ID,
+        channelKey: import.meta.env.VITE_CHANNEL_KEY,
+      });
 
       const payment = await PortOne.requestPayment({
         storeId: import.meta.env.VITE_STORE_ID,
         channelKey: import.meta.env.VITE_CHANNEL_KEY,
         paymentId,
-        orderName: `${selectedPlan.title} 멤버십 구독`,
+        orderName: `${selectedPlan.title} Membership Subscription`,
         totalAmount: price,
         currency: "KRW",
         payMethod: "CARD",
-        customData: {
-          membershipGrade: selectedPlan.title,
+        customer: {
+          fullName: 'Subscriber',
+          email: 'subscriber@example.com',
+          phoneNumber: '01012341234'
         },
+        customData: {
+          membershipGrade: selectedPlan.title.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, ''),
+        },
+      }).catch(error => {
+        console.error('PortOne requestPayment error:', error);
+        throw new Error('포트원 결제 요청 중 오류가 발생했습니다.');
       });
 
+      console.log('PortOne payment response:', payment);
+
       if (payment.code != null) {
+        console.error('Payment failed with code:', payment.code, payment.message);
         setPaymentStatus({
           status: "FAILED",
-          message: payment.message,
+          message: `결제 실패: ${payment.message || '알 수 없는 오류가 발생했습니다.'}`,
         });
         return;
       }
 
-      try {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/payment/complete`,
-          {
-            paymentId: payment.paymentId,
-          }
-        );
-        
-        setPaymentStatus({
-          status: data.status,
-        });
-      } catch (error) {
-        setPaymentStatus({
-          status: "FAILED",
-          message: error.response?.data || "결제 완료 처리 중 오류가 발생했습니다.",
-        });
-      }
+      console.log('Sending payment completion request to backend:', {
+        paymentId: payment.paymentId,
+        apiUrl: `${import.meta.env.VITE_API_URL}/api/payment/complete`,
+      });
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payment/complete`, 
+        null, 
+        {
+          params: {
+            payment_id: payment.paymentId, 
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, 
+        }
+      ).catch(error => {
+        console.error('Backend API error:', error.response || error);
+        throw new Error('서버 통신 중 오류가 발생했습니다.');
+      });
+
+      console.log('Backend response:', data);
+      
+      setPaymentStatus({
+        status: data.status,
+      });
     } catch (error) {
+      console.error('Payment process error:', error);
       setPaymentStatus({
         status: "FAILED",
-        message: "결제 처리 중 오류가 발생했습니다.",
+        message: error.message || "결제 처리 중 오류가 발생했습니다.",
       });
     }
   };

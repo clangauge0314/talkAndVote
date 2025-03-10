@@ -115,21 +115,21 @@ const Membership = () => {
     {
       title: '실버',
       color: 'bg-gradient-to-br from-gray-400 to-gray-600',
-      price: '₩5,000',
+      price: '무료',
       topics: '월 3회',
       features: ['모든 브론즈 혜택', '실버 뱃지 제공']
     },
     {
       title: '골드',
       color: 'bg-gradient-to-br from-yellow-500 to-yellow-700',
-      price: '₩10,000',
+      price: '₩1,000',
       topics: '월 6회',
       features: ['모든 실버 혜택', '골드 뱃지 제공']
     },
     {
       title: 'VIP',
       color: 'bg-gradient-to-br from-emerald-500 to-emerald-700',
-      price: '₩20,000',
+      price: '₩1,000',
       topics: '무제한',
       features: ['모든 골드 혜택', 'VIP 뱃지 제공', '1:1 상담 지원']
     }
