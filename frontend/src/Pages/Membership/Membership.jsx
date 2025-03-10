@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth';
-import PaymentModal from '../../Components/Modal/PaymentModal/PaymentModal';
 import { useSelector } from 'react-redux';
+import PaymentModal from '../../Components/Modal/PaymentModal/PaymentModal';
 
 const MembershipCard = ({ title, color, price, topics, features, onSubscribe, currentGrade }) => {
   
@@ -161,9 +161,9 @@ const Membership = () => {
       </div>
       <ComparisonTable />
       <PaymentModal 
-        isOpen={isModalOpen} 
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        plan={selectedPlan}
+        selectedPlan={selectedPlan}
       />
     </div>
   );

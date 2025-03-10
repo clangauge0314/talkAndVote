@@ -1,52 +1,122 @@
-import React from 'react';
-import { IoCloseOutline } from 'react-icons/io5';
+import PortOne from "@portone/browser-sdk/v2";
+import { useState } from "react";
+import axios from "axios";
 
-const PaymentModal = ({ isOpen, onClose, plan }) => {
-  if (!isOpen) return null;
+function randomId() {
+  return Array.from(crypto.getRandomValues(new Uint32Array(2)))
+    .map((word) => word.toString(16).padStart(8, "0"))
+    .join("");
+}
 
-  const handlePayment = (method) => {
-    console.log(`Processing ${method} payment for ${plan.title} plan`);
-    // TODO: Implement actual payment logic
+const PaymentModal = ({ isOpen, onClose, selectedPlan }) => {
+  const [paymentStatus, setPaymentStatus] = useState({
+    status: "IDLE",
+  });
+
+  const handlePayment = async () => {
+    try {
+      setPaymentStatus({ status: "PENDING" });
+      const paymentId = randomId();
+
+      const price =
+        selectedPlan.price === "무료"
+          ? 0
+          : parseInt(selectedPlan.price.replace(/[^0-9]/g, ""));
+
+      const payment = await PortOne.requestPayment({
+        storeId: import.meta.env.VITE_STORE_ID,
+        channelKey: import.meta.env.VITE_CHANNEL_KEY,
+        paymentId,
+        orderName: `${selectedPlan.title} 멤버십 구독`,
+        totalAmount: price,
+        currency: "KRW",
+        payMethod: "CARD",
+        customData: {
+          membershipGrade: selectedPlan.title,
+        },
+      });
+
+      if (payment.code != null) {
+        setPaymentStatus({
+          status: "FAILED",
+          message: payment.message,
+        });
+        return;
+      }
+
+      try {
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/payment/complete`,
+          {
+            paymentId: payment.paymentId,
+          }
+        );
+        
+        setPaymentStatus({
+          status: data.status,
+        });
+      } catch (error) {
+        setPaymentStatus({
+          status: "FAILED",
+          message: error.response?.data || "결제 완료 처리 중 오류가 발생했습니다.",
+        });
+      }
+    } catch (error) {
+      setPaymentStatus({
+        status: "FAILED",
+        message: "결제 처리 중 오류가 발생했습니다.",
+      });
+    }
+  };
+
+  const handleClose = () => {
+    setPaymentStatus({ status: "IDLE" });
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative animate-fadeIn">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <IoCloseOutline className="w-6 h-6" />
-        </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-4">멤버십 구독 결제</h2>
 
-        <h2 className="text-2xl font-bold mb-4">결제 수단 선택</h2>
-        <p className="text-gray-600 mb-6">
-          {plan?.title} 멤버십 ({plan?.price})
-        </p>
-
-        <div className="space-y-4">
-          <button
-            onClick={() => handlePayment('toss')}
-            className="w-full flex items-center justify-center space-x-2 bg-[#0064FF] text-white py-3 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <span>토스페이로 결제하기</span>
-          </button>
-
-          <button
-            onClick={() => handlePayment('kakao')}
-            className="w-full flex items-center justify-center space-x-2 bg-[#FFE500] text-black py-3 rounded-lg hover:bg-yellow-400 transition-colors"
-          >
-            <span>카카오페이로 결제하기</span>
-          </button>
+        <div className="mb-6">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-semibold mb-2">{selectedPlan.title} 멤버십</h3>
+            <p className="text-gray-600">구독 가격: {selectedPlan.price}/월</p>
+          </div>
         </div>
 
-        <p className="text-sm text-gray-500 mt-6">
-          결제 진행 시 이용약관 및 개인정보 처리방침에 동의하는 것으로 간주됩니다.
-        </p>
+        {paymentStatus.status === "FAILED" && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+            {paymentStatus.message}
+          </div>
+        )}
+
+        {paymentStatus.status === "PAID" && (
+          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
+            결제가 완료되었습니다.
+          </div>
+        )}
+
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            취소
+          </button>
+          {paymentStatus.status === "IDLE" && (
+            <button
+              onClick={handlePayment}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              disabled={selectedPlan.price === "무료"}
+            >
+              결제하기
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
