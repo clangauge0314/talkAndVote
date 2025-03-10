@@ -52,8 +52,8 @@ async def update_comment_router(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return await CommentCrud.update(db=db, comment_data=comment_data)
-
+    db_commnet = await CommentCrud.update(db=db, comment_data=comment_data)
+    return await CommentService.comment_to_response(db, db_commnet, user_id)
 
 @router.delete("/comment/{comment_id}")
 async def delete_comment_router(

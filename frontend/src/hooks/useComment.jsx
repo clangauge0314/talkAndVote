@@ -135,10 +135,45 @@ export const useComment = () => {
         }
     };
 
+    const updateComment = async (commentId, content) => {
+        setLoading(true);
+        try {
+            const response = await axios.put(
+                `${import.meta.env.VITE_API_URL}/comment`,
+                { comment_id: commentId, content },
+                { withCredentials: true }
+            );
+
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "댓글 수정 완료",
+                    text: "댓글이 성공적으로 수정되었습니다.",
+                    confirmButtonColor: "#34D399",
+                });
+                return response.data;
+            }
+            return null;
+        } catch (error) {
+            if (await handleAuthError(error)) return null;
+
+            Swal.fire({
+                icon: "error",
+                title: "오류 발생",
+                text: error.response?.data?.error || "댓글을 수정할 수 없습니다.",
+                confirmButtonColor: "#EF4444",
+            });
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         loading,
         createComment,
         getComments,
-        deleteComment
+        deleteComment,
+        updateComment
     };
 };
