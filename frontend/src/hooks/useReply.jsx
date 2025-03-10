@@ -87,12 +87,17 @@ export const useReply = () => {
 
     const updateReply = async (replyId, content) => {
         setLoading(true);
+        alert(replyId, content);    
         try {
+
+            console.log(replyId, content);
             const response = await axios.put(
                 `${import.meta.env.VITE_API_URL}/reply`,
                 { reply_id: replyId, content },
                 { withCredentials: true }
             );
+
+            
 
             if (response.status === 200) {
                 Swal.fire({
