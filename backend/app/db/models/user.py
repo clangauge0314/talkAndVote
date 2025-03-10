@@ -27,13 +27,20 @@ class User(Base):
     profile_url = Column(String(255), nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=True)
 
+    # ✅ 유저 등급 (멤버십 레벨)
     membership_level = Column(
-        Enum("free", "vip", name="membership_levels"),
-        default="free",
+        Enum("bronze", "silver", "gold", "vip", name="membership_levels"),
+        default="bronze",
         nullable=False,
     )
 
-    last_post_date = Column(DateTime, nullable=True)
+    # ✅ 한 달 동안 작성 가능한 게시물 개수 제한 (등급에 따라 다름)
+    post_limit_per_month = Column(
+        Integer, default=10, nullable=False
+    )  # 기본값: 브론즈 등급 10개 제한
+
+    # ✅ 마지막 게시물 작성한 달 (월별 제한 적용)
+    last_post_month = Column(DateTime, nullable=True)
 
     topics = relationship("Topic", back_populates="user", cascade="all, delete-orphan")
     payments = relationship(
