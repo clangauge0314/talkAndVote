@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { BiSearch, BiTrendingUp } from "react-icons/bi";
+import { BiSearch } from "react-icons/bi";
 import { FaRegCreditCard } from "react-icons/fa";
-import { MdDashboard, MdLocalActivity, MdAdd, MdWorkspacePremium, MdOutlineAttachMoney } from "react-icons/md";
+import { MdDashboard, MdLocalActivity, MdAdd } from "react-icons/md";
 import Avatar from 'react-avatar';
 import { useAuth } from '../../hooks/useAuth';
 

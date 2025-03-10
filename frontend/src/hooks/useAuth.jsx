@@ -2,6 +2,8 @@ import { useState, createContext, useContext, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { setMembershipGrade } from '../store/membershipSlice';
 
 const AuthContext = createContext(null);
 
@@ -13,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const login = async (email, password) => {
     try {
@@ -97,6 +100,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchMembershipGrade = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/users/membership`,
+        { withCredentials: true }
+      );
+      dispatch(setMembershipGrade(response.data.grade));
+    } catch (error) {
+      console.error("멤버십 정보 조회 실패:", error);
+    }
+  };
+
   const verifyJWT = async (force = false) => {
     const now = Date.now();
     const VERIFY_INTERVAL = 5 * 60 * 1000;
@@ -115,6 +130,7 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
       setLastVerified(now);
       setIsLoading(false);
+      await fetchMembershipGrade();
       return true;
 
     } catch (error) {
@@ -153,6 +169,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         verifyJWT,
         isLoading,
+        fetchMembershipGrade,
       }}
     >
       {children}

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth';
-import PaymentModal from './PaymentModal';
+import PaymentModal from '../../Components/Modal/PaymentModal';
+import { useSelector } from 'react-redux';
 
-const MembershipCard = ({ title, color, price, topics, features, onSubscribe }) => {
+const MembershipCard = ({ title, color, price, topics, features, onSubscribe, currentGrade }) => {
+  const isCurrentPlan = currentGrade === title.toLowerCase();
+  
   return (
     <div className={`p-6 rounded-lg shadow-xl transition-transform hover:scale-105 ${color} max-w-sm w-full mx-auto flex flex-col h-full`}>
       <div className="flex-grow">
@@ -23,12 +26,21 @@ const MembershipCard = ({ title, color, price, topics, features, onSubscribe }) 
           ))}
         </div>
       </div>
-      <button 
-        onClick={() => onSubscribe(title, price)}
-        className="w-full py-2 px-4 bg-white text-gray-900 rounded-lg font-semibold hover:bg-opacity-90 transition-colors mt-auto"
-      >
-        구독하기
-      </button>
+      {isCurrentPlan ? (
+        <button 
+          disabled
+          className="w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-lg font-semibold cursor-not-allowed"
+        >
+          현재 구독 중
+        </button>
+      ) : (
+        <button 
+          onClick={() => onSubscribe(title, price)}
+          className="w-full py-2 px-4 bg-white text-gray-900 rounded-lg font-semibold hover:bg-opacity-90 transition-colors mt-auto"
+        >
+          구독하기
+        </button>
+      )}
     </div>
   );
 };
@@ -79,6 +91,7 @@ const ComparisonTable = () => {
 
 const Membership = () => {
   const { verifyJWT } = useAuth();
+  const membershipGrade = useSelector(state => state.membership.grade);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
@@ -128,6 +141,11 @@ const Membership = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-4">멤버십 플랜</h1>
+      {membershipGrade && (
+        <p className="text-center text-emerald-600 mb-4">
+          현재 회원님의 멤버십 등급은 <span className="font-bold">{membershipGrade}</span> 입니다
+        </p>
+      )}
       <p className="text-center text-gray-600 mb-12">당신에게 맞는 완벽한 플랜을 선택하세요</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {memberships.map((membership, index) => (
@@ -135,6 +153,7 @@ const Membership = () => {
             key={index} 
             {...membership} 
             onSubscribe={handleSubscribe}
+            currentGrade={membershipGrade}
           />
         ))}
       </div>

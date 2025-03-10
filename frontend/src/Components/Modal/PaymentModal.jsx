@@ -1,6 +1,4 @@
 import React from 'react';
-import { RiKakaoTalkFill } from 'react-icons/ri';
-import { SiToss } from 'react-icons/si';
 import { IoCloseOutline } from 'react-icons/io5';
 
 const PaymentModal = ({ isOpen, onClose, plan }) => {
@@ -33,17 +31,15 @@ const PaymentModal = ({ isOpen, onClose, plan }) => {
         <div className="space-y-4">
           <button
             onClick={() => handlePayment('toss')}
-            className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full flex items-center justify-center space-x-2 bg-[#0064FF] text-white py-3 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            <SiToss className="w-6 h-6" />
             <span>토스페이로 결제하기</span>
           </button>
 
           <button
             onClick={() => handlePayment('kakao')}
-            className="w-full flex items-center justify-center space-x-2 bg-yellow-400 text-black py-3 rounded-lg hover:bg-yellow-500 transition-colors"
+            className="w-full flex items-center justify-center space-x-2 bg-[#FFE500] text-black py-3 rounded-lg hover:bg-yellow-400 transition-colors"
           >
-            <RiKakaoTalkFill className="w-6 h-6" />
             <span>카카오페이로 결제하기</span>
           </button>
         </div>
