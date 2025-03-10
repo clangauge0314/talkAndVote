@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth';
+import PaymentModal from './PaymentModal';
 
-const MembershipCard = ({ title, color, price, topics, features }) => {
+const MembershipCard = ({ title, color, price, topics, features, onSubscribe }) => {
   return (
     <div className={`p-6 rounded-lg shadow-xl transition-transform hover:scale-105 ${color} max-w-sm w-full mx-auto flex flex-col h-full`}>
       <div className="flex-grow">
@@ -22,7 +23,10 @@ const MembershipCard = ({ title, color, price, topics, features }) => {
           ))}
         </div>
       </div>
-      <button className="w-full py-2 px-4 bg-white text-gray-900 rounded-lg font-semibold hover:bg-opacity-90 transition-colors mt-auto">
+      <button 
+        onClick={() => onSubscribe(title, price)}
+        className="w-full py-2 px-4 bg-white text-gray-900 rounded-lg font-semibold hover:bg-opacity-90 transition-colors mt-auto"
+      >
         구독하기
       </button>
     </div>
@@ -75,6 +79,8 @@ const ComparisonTable = () => {
 
 const Membership = () => {
   const { verifyJWT } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -114,16 +120,30 @@ const Membership = () => {
     }
   ];
 
+  const handleSubscribe = (title, price) => {
+    setSelectedPlan({ title, price });
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-4">멤버십 플랜</h1>
       <p className="text-center text-gray-600 mb-12">당신에게 맞는 완벽한 플랜을 선택하세요</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {memberships.map((membership, index) => (
-          <MembershipCard key={index} {...membership} />
+          <MembershipCard 
+            key={index} 
+            {...membership} 
+            onSubscribe={handleSubscribe}
+          />
         ))}
       </div>
       <ComparisonTable />
+      <PaymentModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        plan={selectedPlan}
+      />
     </div>
   );
 };
