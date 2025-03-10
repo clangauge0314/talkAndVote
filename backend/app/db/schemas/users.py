@@ -1,6 +1,15 @@
 from zoneinfo import ZoneInfo
 from pydantic import BaseModel, Field, HttpUrl
 from datetime import datetime, date, timezone
+from enum import Enum
+
+
+# ✅ 멤버십 등급 Enum 추가
+class MembershipLevel(str, Enum):
+    bronze = "bronze"
+    silver = "silver"
+    gold = "gold"
+    vip = "vip"
 
 
 class UserBase(BaseModel):
@@ -31,6 +40,7 @@ class UserSchemas(UserBase):
     user_id: int
     is_verified: bool = False
     refresh_token: str | None = None
+    membership_level: MembershipLevel = MembershipLevel.bronze
 
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(ZoneInfo("Asia/Seoul"))
